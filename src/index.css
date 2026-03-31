@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-100: #FEF08A;
+  --color-brand-300: #FDE047;
+  --color-brand-400: #FACC15;
+  --color-brand-500: #EAB308; /* Yellow */
+  --color-brand-600: #CA8A04;
+  
+  --color-bg-dark: #000000;
+  --color-bg-card: #1A1A1A;
+  --color-bg-card-hover: #262626;
+
+  --color-text-main: #FFFFFF;
+  --color-text-muted: #A3A3A3;
+  
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-main);
+    font-family: var(--font-family-sans);
+  }
+}
+
+/* Removed glass utilities to favor inline Tailwind classes */
