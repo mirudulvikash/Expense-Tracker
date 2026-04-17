@@ -16,7 +16,7 @@ export const TransactionForm = () => {
 
   const categories = {
     income: ['Salary', 'Freelance', 'Investments', 'Gift', 'Other'],
-    expense: ['Food', 'Housing', 'Transportation', 'Utilities', 'Shopping', 'Entertainment', 'Healthcare', 'Bills', 'Other']
+    expense: ['Food', 'Housing', 'Transportation', 'Utilities', 'Shopping', 'Entertainment', 'Healthcare', 'Education', 'Bills', 'Other']
   };
 
   const onSubmit = e => {
