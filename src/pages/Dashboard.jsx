@@ -11,10 +11,19 @@ import { formatCurrency } from '../utils/helpers';
 export const Dashboard = () => {
   const { transactions, budget } = useContext(GlobalContext);
 
-  const amounts = transactions.map(transaction => transaction.amount);
+  const currentMonthTransactions = transactions.filter(t => {
+    const tDate = new Date(t.date);
+    const now = new Date();
+    return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+  });
+
+  const amounts = currentMonthTransactions.map(transaction => transaction.amount);
   const income = amounts.filter(item => item > 0).reduce((acc, item) => (acc += item), 0);
   const expense = (amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) * -1);
   const total = income - expense;
+
+  // Percentage for progress
+  const budgetProgress = budget > 0 ? Math.min(Math.round((expense / budget) * 100), 100) : 0;
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-700">
@@ -61,7 +70,7 @@ export const Dashboard = () => {
             <div className="flex justify-between items-start">
                <div>
                  <h3 className="text-sm font-medium text-white">My Goal</h3>
-                 <span className="text-[10px] text-[#FACC15] mt-1 inline-block">50% completed</span>
+                 <span className="text-[10px] text-[#FACC15] mt-1 inline-block">{budgetProgress}% completed</span>
                </div>
                <button className="w-7 h-7 rounded-full bg-[#262626] flex items-center justify-center text-[#A3A3A3] hover:text-white transition-colors">
                   <ArrowUpRight size={14} />

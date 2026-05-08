@@ -17,11 +17,9 @@ const TopNav = () => {
   const [showMessages, setShowMessages] = useState(false);
   const isActive = (path) => location.pathname === path;
 
-  // Don't show topnav on login, signup, or landing page
-  if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/') return null;
-
+  // Navigation is now always visible since login is removed
   const navItems = [
-    { name: 'Home', path: '/dashboard', icon: <LayoutDashboard size={16} /> },
+    { name: 'Home', path: '/', icon: <LayoutDashboard size={16} /> },
     { name: 'Analytics', path: '/analytics', icon: <ReceiptText size={16} /> },
     { name: 'Transaction', path: '/transactions', icon: <ReceiptText size={16} /> },
   ];
@@ -95,10 +93,7 @@ function App() {
           <TopNav />
           <main className="flex-1 p-6 w-full max-w-[1400px] mx-auto">
             <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/transactions" element={<TransactionsPage />} />
               <Route path="/analytics" element={<Analytics />} />
@@ -106,6 +101,7 @@ function App() {
               <Route path="/plan" element={<div className="text-slate-400">Plan page coming soon...</div>} />
               <Route path="/cards" element={<div className="text-slate-400">Cards page coming soon...</div>} />
               <Route path="/settings" element={<div className="text-slate-400">Settings page coming soon...</div>} />
+              {/* Login and Signup pages are removed as requested */}
             </Routes>
           </main>
         </div>

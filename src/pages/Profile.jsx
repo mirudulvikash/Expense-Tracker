@@ -56,10 +56,6 @@ export const Profile = () => {
     }
   };
 
-  const handleSignOut = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
@@ -114,9 +110,6 @@ export const Profile = () => {
             </button>
           </div>
           
-          <Button onClick={handleSignOut} variant="danger" type="button" className="w-full mt-auto bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl font-medium">
-             Sign Out
-          </Button>
         </Card>
 
         {/* Right Column: Settings Form */}
@@ -151,7 +144,7 @@ export const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="budget" className="text-[#E5E5E5] flex items-center justify-between">
-                      Global Monthly Goal
+                      Current Month Goal
                       <span className="text-xs bg-[#262626] px-2 py-1 rounded-md text-[#FACC15]">₹</span>
                     </Label>
                     <Input 
@@ -161,7 +154,7 @@ export const Profile = () => {
                       onChange={(e) => setBudget(Number(e.target.value))}
                       className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
                     />
-                    <p className="text-xs text-[#A3A3A3] mt-1">Establishes the progress track.</p>
+                    <p className="text-xs text-[#A3A3A3] mt-1">Changing this only affects your goal for the current month.</p>
                   </div>
   
                   <div className="space-y-2">

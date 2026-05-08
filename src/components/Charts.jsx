@@ -27,7 +27,7 @@ const BudgetTooltip = ({ active, payload, label }) => {
 };
 
 export const BudgetBarChart = () => {
-  const { transactions, budget } = useContext(GlobalContext);
+  const { transactions, budget, getBudgetForMonth } = useContext(GlobalContext);
 
   const data = useMemo(() => {
     const monthMap = {};
@@ -35,11 +35,11 @@ export const BudgetBarChart = () => {
     transactions.forEach(t => {
       if (t.type !== 'expense') return;
       const dateObj = new Date(t.date);
-      const monthKey = dateObj.toLocaleString('default', { month: 'short' });
-      const sortKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth()).padStart(2, '0')}`;
+      const monthLabel = dateObj.toLocaleString('default', { month: 'short' });
+      const sortKey = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
 
       if (!monthMap[sortKey]) {
-        monthMap[sortKey] = { name: monthKey, expense: 0 };
+        monthMap[sortKey] = { name: monthLabel, expense: 0, key: sortKey };
       }
       monthMap[sortKey].expense += Math.abs(t.amount);
     });
@@ -49,12 +49,19 @@ export const BudgetBarChart = () => {
       .sort()
       .slice(-6)
       .map(key => {
+        const currentMonthBudget = getBudgetForMonth(key);
         const spent = monthMap[key].expense;
-        const exceeded = spent > budget;
-        const remaining = exceeded ? 0 : budget - spent;
-        return { ...monthMap[key], remaining, exceeded, goal: budget };
+        const exceeded = spent > currentMonthBudget;
+        const remaining = exceeded ? 0 : currentMonthBudget - spent;
+        return { 
+          name: monthMap[key].name, 
+          expense: spent, 
+          remaining, 
+          exceeded, 
+          goal: currentMonthBudget 
+        };
       });
-  }, [transactions, budget]);
+  }, [transactions, getBudgetForMonth]);
 
   return (
     <Card className="h-full flex flex-col pt-6 pb-2 px-6">

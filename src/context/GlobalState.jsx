@@ -1,11 +1,16 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 
-// Initial empty data
+// Helper to get current month key (YYYY-MM)
+const getCurrentMonthKey = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+};
+
 const defaultTransactions = [];
 
 const initialState = {
   transactions: JSON.parse(localStorage.getItem('transactions')) || defaultTransactions,
-  budget: JSON.parse(localStorage.getItem('budget')) || 2500,
+  budgets: JSON.parse(localStorage.getItem('budgets')) || {}, // { '2024-05': 2500 }
   userProfile: JSON.parse(localStorage.getItem('userProfile')) || {
     firstName: 'Guest',
     lastName: 'User',
@@ -31,11 +36,16 @@ const AppReducer = (state, action) => {
         ...state,
         transactions: [action.payload, ...state.transactions]
       };
-    case 'SET_BUDGET':
+    case 'SET_BUDGET': {
+      const monthKey = action.payload.month || getCurrentMonthKey();
       return {
         ...state,
-        budget: action.payload
+        budgets: {
+          ...state.budgets,
+          [monthKey]: action.payload.amount
+        }
       };
+    }
     case 'SET_USER_PROFILE':
       return {
         ...state,
@@ -53,7 +63,7 @@ export const GlobalProvider = ({ children }) => {
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(state.transactions));
-    localStorage.setItem('budget', JSON.stringify(state.budget));
+    localStorage.setItem('budgets', JSON.stringify(state.budgets));
     localStorage.setItem('userProfile', JSON.stringify(state.userProfile));
   }, [state]);
 
@@ -66,18 +76,26 @@ export const GlobalProvider = ({ children }) => {
     dispatch({ type: 'ADD_TRANSACTION', payload: transaction });
   }
 
-  function setBudget(amount) {
-    dispatch({ type: 'SET_BUDGET', payload: amount });
+  function setBudget(amount, month = null) {
+    dispatch({ type: 'SET_BUDGET', payload: { amount, month } });
   }
 
   function updateUserProfile(profile) {
     dispatch({ type: 'SET_USER_PROFILE', payload: profile });
   }
 
+  // Get budget for a specific month or default
+  const getBudgetForMonth = (monthKey = null) => {
+    const key = monthKey || getCurrentMonthKey();
+    return state.budgets[key] || 2500; // Default budget if not set
+  };
+
   return (
     <GlobalContext.Provider value={{
       transactions: state.transactions,
-      budget: state.budget,
+      budgets: state.budgets,
+      budget: getBudgetForMonth(), // Expose current month's budget for convenience
+      getBudgetForMonth,
       userProfile: state.userProfile,
       deleteTransaction,
       addTransaction,
