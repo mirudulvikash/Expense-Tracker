@@ -9,7 +9,7 @@ import { ArrowUpRight, Building2 } from 'lucide-react';
 import { formatCurrency } from '../utils/helpers';
 
 export const Dashboard = () => {
-  const { transactions, budget } = useContext(GlobalContext);
+  const { transactions, budget, isLoading } = useContext(GlobalContext);
 
   const currentMonthTransactions = transactions.filter(t => {
     const tDate = new Date(t.date);
@@ -25,6 +25,14 @@ export const Dashboard = () => {
   // Percentage for progress
   const budgetProgress = budget > 0 ? Math.min(Math.round((expense / budget) * 100), 100) : 0;
   
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="w-10 h-10 border-4 border-[#FACC15] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-700">
       

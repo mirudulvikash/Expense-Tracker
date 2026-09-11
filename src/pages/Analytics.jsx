@@ -8,7 +8,7 @@ import { Calendar, Filter, BrainCircuit, TrendingUp, TrendingDown, Wallet, Activ
 import { subDays, subMonths, isAfter, format, parseISO, startOfMonth, startOfWeek, endOfMonth } from 'date-fns';
 
 export const Analytics = () => {
-  const { transactions } = useContext(GlobalContext);
+  const { transactions, isLoading } = useContext(GlobalContext);
 
   const [dateRange, setDateRange] = useState('30d');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -141,6 +141,14 @@ export const Analytics = () => {
     }
     return "Your spending seems stable, but always look for ways to optimize your budget.";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[500px]">
+        <div className="w-10 h-10 border-4 border-[#FACC15] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-in fade-in duration-500 pb-12 h-full flex flex-col space-y-8">

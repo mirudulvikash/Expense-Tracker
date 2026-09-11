@@ -7,33 +7,28 @@ import { User, Mail, Shield, Bell, KeySquare, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Profile = () => {
-  const { budget, setBudget, userProfile, updateUserProfile } = useContext(GlobalContext);
+  const { budget, setBudget, userProfile, updateUserProfile, isLoading } = useContext(GlobalContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-
-  const storedUser = JSON.parse(localStorage.getItem('user')) || {};
 
   const [activeTab, setActiveTab] = useState('personal'); // 'personal', 'security', 'notifications'
 
   const [localProfile, setLocalProfile] = useState({
-    firstName: storedUser.firstName || userProfile?.firstName || '',
-    lastName: storedUser.lastName || userProfile?.lastName || '',
-    email: storedUser.email || userProfile?.email || '',
+    firstName: userProfile?.firstName || '',
+    lastName: userProfile?.lastName || '',
+    email: userProfile?.email || '',
     avatar: userProfile?.avatar || '',
     loanAmount: userProfile?.loanAmount || 0
   });
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    updateUserProfile(localProfile);
-    const existingUser = JSON.parse(localStorage.getItem('user')) || {};
-    localStorage.setItem('user', JSON.stringify({ 
-      ...existingUser, 
-      firstName: localProfile.firstName, 
-      lastName: localProfile.lastName, 
-      email: localProfile.email 
-    }));
-    alert("Profile settings saved successfully!");
+    try {
+      await updateUserProfile(localProfile);
+      alert("Profile settings saved successfully!");
+    } catch(err) {
+      alert("Error saving profile");
+    }
   };
 
   const handleStaticSave = (e) => {
@@ -55,7 +50,13 @@ export const Profile = () => {
       reader.readAsDataURL(file);
     }
   };
-
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="w-10 h-10 border-4 border-[#FACC15] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6 animate-in fade-in duration-500 pb-12">

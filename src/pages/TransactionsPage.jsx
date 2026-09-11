@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { TransactionList } from '../components/TransactionList';
+import { GlobalContext } from '../context/GlobalState';
 
 export const TransactionsPage = () => {
+  const { isLoading } = useContext(GlobalContext);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-10 h-10 border-4 border-[#FACC15] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
   return (
     <div className="animate-in fade-in duration-500 pb-12 h-screen flex flex-col">
       <div className="flex items-center justify-between mb-8">
