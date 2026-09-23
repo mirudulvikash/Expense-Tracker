@@ -4,7 +4,6 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../utils/supabase';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -15,21 +14,21 @@ export const Login = () => {
 
   const isFormValid = email && password;
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
     setError('');
 
     if (isFormValid) {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (authError) {
-        setError(authError.message);
-      } else {
-        navigate('/profile');
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.email === email && user.password === password) {
+          navigate('/profile');
+          return;
+        }
       }
+      
+      setError('Invalid email or password.');
     }
   };
 

@@ -5,7 +5,6 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../utils/supabase';
 
 export const Signup = () => {
   const { updateUserProfile, userProfile } = useContext(GlobalContext);
@@ -21,7 +20,7 @@ export const Signup = () => {
 
   const isFormValid = firstName && lastName && email && password && confirmPassword;
 
-  const handleSignup = async (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
     setError('');
     
@@ -31,41 +30,16 @@ export const Signup = () => {
     }
 
     if (isFormValid) {
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName
-          }
-        }
-      });
-
-      if (authError) {
-        setError(authError.message);
-        return;
-      }
-
-      // Also create a profile record
-      const avatarUrl = `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=EAB308&color=000&size=150`;
-      
-      await supabase.from('profiles').insert([{
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        avatar: avatarUrl,
-        loan_amount: 0
-      }]);
-
       updateUserProfile({
         ...userProfile,
         firstName,
         lastName,
         email,
-        avatar: avatarUrl
+        avatar: `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=EAB308&color=000&size=150`
       });
-      
+      // Save for auth flow
+      localStorage.setItem('user', JSON.stringify({ firstName, lastName, email, password }));
+      // Redirect to login after successful signup
       navigate('/login');
     }
   };
