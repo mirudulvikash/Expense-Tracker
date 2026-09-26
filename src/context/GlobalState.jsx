@@ -1,5 +1,7 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 
+const API_BASE_URL = 'https://expense-tracker-backend-mz0a.onrender.com';
+
 // Helper to get current month key (YYYY-MM)
 const getCurrentMonthKey = () => new Date().toISOString().slice(0, 7);
 
@@ -111,9 +113,9 @@ export const GlobalProvider = ({ children }) => {
     const fetchData = async () => {
       try {
         const [txRes, budgetRes, profileRes] = await Promise.all([
-          fetch('http://localhost:5000/api/transactions'),
-          fetch('http://localhost:5000/api/budgets'),
-          fetch('http://localhost:5000/api/profile')
+          fetch(`${API_BASE_URL}/api/transactions`),
+          fetch(`${API_BASE_URL}/api/budgets`),
+          fetch(`${API_BASE_URL}/api/profile`)
         ]);
 
         if (txRes.ok) {
@@ -154,7 +156,7 @@ export const GlobalProvider = ({ children }) => {
   // Actions
   async function deleteTransaction(id) {
     try {
-      const res = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/transactions/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -178,7 +180,7 @@ export const GlobalProvider = ({ children }) => {
         date: transaction.date || new Date().toISOString()
       };
 
-      const res = await fetch('http://localhost:5000/api/transactions', {
+      const res = await fetch(`${API_BASE_URL}/api/transactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -205,7 +207,7 @@ export const GlobalProvider = ({ children }) => {
     const target_amount = Number(rawVal);
 
     try {
-      const res = await fetch('http://localhost:5000/api/budgets', {
+      const res = await fetch(`${API_BASE_URL}/api/budgets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -240,7 +242,7 @@ export const GlobalProvider = ({ children }) => {
       const avatar_url = profile.avatar_url || profile.avatar || '';
       const base_loan = Number(profile.base_loan ?? profile.loanAmount ?? 0);
 
-      const res = await fetch('http://localhost:5000/api/profile', {
+      const res = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
