@@ -40,13 +40,8 @@ const TopNav = () => {
 
   return (
     <header className="w-full flex justify-between py-6 px-8 items-center bg-black border-b border-[#1a1a1a]">
-      {/* Brand logo */}
-      <Link to="/" className="flex items-center gap-2">
-        <div className="w-9 h-9 bg-[#FACC15] rounded-xl flex items-center justify-center font-black text-black">
-          EF
-        </div>
-        <span className="font-bold text-lg text-white tracking-tight">ExpenseFlow</span>
-      </Link>
+      {/* Empty div placeholder to preserve flex layout */}
+      <div></div>
 
       {/* Nav links (only shown if logged in) */}
       {authToken ? (
