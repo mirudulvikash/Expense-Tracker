@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { GlobalContext, GlobalProvider } from './context/GlobalState';
 import { Dashboard } from './pages/Dashboard';
 import { TransactionsPage } from './pages/TransactionsPage';
@@ -8,6 +8,22 @@ import { Signup } from './pages/Signup';
 import { Analytics } from './pages/Analytics';
 import { Profile } from './pages/Profile';
 import { LayoutDashboard, ReceiptText, LogOut } from 'lucide-react';
+
+const ProtectedRoute = ({ children }) => {
+  const { authToken } = useContext(GlobalContext);
+  if (!authToken) {
+    return <Navigate to="/signup" replace />;
+  }
+  return children;
+};
+
+const GuestRoute = ({ children }) => {
+  const { authToken } = useContext(GlobalContext);
+  if (authToken) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
 
 const TopNav = () => {
   const location = useLocation();
@@ -23,28 +39,40 @@ const TopNav = () => {
   ];
 
   return (
-    <header className="w-full flex justify-center py-6 px-8 items-center bg-black border-b border-[#1a1a1a]">
-      <div className="flex-1"></div>
+    <header className="w-full flex justify-between py-6 px-8 items-center bg-black border-b border-[#1a1a1a]">
+      {/* Brand logo */}
+      <Link to="/" className="flex items-center gap-2">
+        <div className="w-9 h-9 bg-[#FACC15] rounded-xl flex items-center justify-center font-black text-black">
+          EF
+        </div>
+        <span className="font-bold text-lg text-white tracking-tight">ExpenseFlow</span>
+      </Link>
 
-      <nav className="flex items-center gap-1 bg-[#1a1a1a] rounded-full p-1.5 px-4 shadow-sm">
-        {navItems.map((item) => (
-          <Link
-            key={item.name}
-            to={item.path}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all font-medium text-sm
-              ${isActive(item.path)
-                ? 'bg-[#FACC15] text-black shadow-md font-semibold'
-                : 'text-[#A3A3A3] hover:text-white'
-              }
-            `}
-          >
-            {item.icon}
-            {item.name}
-          </Link>
-        ))}
-      </nav>
+      {/* Nav links (only shown if logged in) */}
+      {authToken ? (
+        <nav className="flex items-center gap-1 bg-[#1a1a1a] rounded-full p-1.5 px-4 shadow-sm">
+          {navItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all font-medium text-sm
+                ${isActive(item.path)
+                  ? 'bg-[#FACC15] text-black shadow-md font-semibold'
+                  : 'text-[#A3A3A3] hover:text-white'
+                }
+              `}
+            >
+              {item.icon}
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+      ) : (
+        <div></div>
+      )}
 
-      <div className="flex-1 flex justify-end items-center gap-3 relative">
+      {/* User Actions */}
+      <div className="flex items-center gap-3 relative">
         {authToken ? (
           <>
             <div className="relative">
@@ -84,14 +112,14 @@ const TopNav = () => {
             <button
               onClick={logoutUser}
               title="Logout"
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-400 bg-[#1a1a1a] hover:bg-red-500/10 border border-[#262626] hover:border-red-500/30 rounded-full transition-colors ml-1"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-red-400 bg-[#1a1a1a] hover:bg-red-500/10 border border-[#262626] hover:border-red-500/30 rounded-full transition-colors ml-1"
             >
               <LogOut size={14} />
               Logout
             </button>
           </>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link to="/login" className="px-4 py-2 text-sm font-medium text-white hover:text-[#FACC15] transition-colors">
               Sign In
             </Link>
@@ -113,16 +141,22 @@ function App() {
           <TopNav />
           <main className="flex-1 p-6 w-full max-w-[1400px] mx-auto">
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/transactions" element={<TransactionsPage />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/payment" element={<div className="text-slate-400">Payment page coming soon...</div>} />
-              <Route path="/plan" element={<div className="text-slate-400">Plan page coming soon...</div>} />
-              <Route path="/cards" element={<div className="text-slate-400">Cards page coming soon...</div>} />
-              <Route path="/settings" element={<div className="text-slate-400">Settings page coming soon...</div>} />
+              {/* Public / Guest Routes */}
+              <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+              <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+
+              {/* Protected Dashboard Routes */}
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              <Route path="/payment" element={<ProtectedRoute><div className="text-slate-400">Payment page coming soon...</div></ProtectedRoute>} />
+              <Route path="/plan" element={<ProtectedRoute><div className="text-slate-400">Plan page coming soon...</div></ProtectedRoute>} />
+              <Route path="/cards" element={<ProtectedRoute><div className="text-slate-400">Cards page coming soon...</div></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><div className="text-slate-400">Settings page coming soon...</div></ProtectedRoute>} />
+
+              {/* Catch-all fallback */}
+              <Route path="*" element={<Navigate to="/signup" replace />} />
             </Routes>
           </main>
         </div>

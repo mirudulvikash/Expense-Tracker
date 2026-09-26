@@ -227,15 +227,7 @@ export const GlobalProvider = ({ children }) => {
         return { success: false, error: data.error || 'Failed to sign up' };
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('authToken', data.token);
-      setAuthToken(data.token);
-
-      if (data.user) {
-        dispatch({ type: 'SET_USER_PROFILE', payload: formatUserProfile(data.user) });
-      }
-
-      fetchUserData(data.token);
+      // Do NOT set authToken or log in immediately - user will be redirected to /login
       return { success: true, user: data.user };
     } catch (err) {
       console.error('Error in signupUser:', err);
@@ -392,7 +384,7 @@ export const GlobalProvider = ({ children }) => {
       authToken,
       transactions: state.transactions,
       budgets: state.budgets,
-      budget: getBudgetForMonth(), // Expose current month's budget for convenience
+      budget: getBudgetForMonth(),
       getBudgetForMonth,
       userProfile: state.userProfile,
       loginUser,

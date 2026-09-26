@@ -37,7 +37,7 @@ export const Signup = () => {
       setLoading(false);
 
       if (res.success) {
-        navigate('/');
+        navigate('/login');
       } else {
         setError(res.error || 'Failed to create account.');
       }
