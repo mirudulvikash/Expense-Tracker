@@ -397,6 +397,31 @@ export const GlobalProvider = ({ children }) => {
     }
   }
 
+  async function updatePassword(currentPassword, newPassword) {
+    if (!authToken) return { success: false, error: 'Not authenticated' };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/update-password`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, error: data.error || 'Failed to update password' };
+      }
+    } catch (err) {
+      console.error('Update Password Error:', err);
+      return { success: false, error: 'Network error or server unreachable' };
+    }
+  }
+
   // Get budget for a specific month or default
   const getBudgetForMonth = (monthKey = null) => {
     const key = monthKey || getCurrentMonthKey();
@@ -415,6 +440,7 @@ export const GlobalProvider = ({ children }) => {
       signupUser,
       logoutUser,
       deleteAccount,
+      updatePassword,
       deleteTransaction,
       addTransaction,
       setBudget,

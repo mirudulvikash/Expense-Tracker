@@ -7,7 +7,7 @@ import { User, Mail, Shield, Bell, Smartphone, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Profile = () => {
-  const { budget, setBudget, userProfile, updateUserProfile, deleteAccount, logoutUser } = useContext(GlobalContext);
+  const { budget, setBudget, userProfile, updateUserProfile, deleteAccount, updatePassword } = useContext(GlobalContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -23,6 +23,13 @@ export const Profile = () => {
     loanAmount: Number(userProfile?.base_loan ?? userProfile?.loanAmount) || 0,
     base_loan: Number(userProfile?.base_loan ?? userProfile?.loanAmount) || 0
   });
+
+  // Security password state
+  const [currPass, setCurrPass] = useState('');
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passError, setPassError] = useState('');
+  const [passLoading, setPassLoading] = useState(false);
 
   useEffect(() => {
     if (userProfile) {
@@ -55,6 +62,32 @@ export const Profile = () => {
       email: localProfile.email 
     }));
     alert("Profile settings saved successfully!");
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setPassError('');
+
+    if (newPass !== confirmPass) {
+      const msg = "New password and confirm password do not match!";
+      setPassError(msg);
+      alert(msg);
+      return;
+    }
+
+    setPassLoading(true);
+    const res = await updatePassword(currPass, newPass);
+    setPassLoading(false);
+
+    if (res.success) {
+      setCurrPass('');
+      setNewPass('');
+      setConfirmPass('');
+      alert("Password updated successfully!");
+    } else {
+      setPassError(res.error || "Failed to update password");
+      alert(res.error || "Failed to update password");
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -241,22 +274,51 @@ export const Profile = () => {
             <>
               <h3 className="text-xl font-semibold mb-6 text-white border-b border-[#262626] pb-4">Security Settings</h3>
               
-              <form onSubmit={handleStaticSave} className="space-y-6">
+              <form onSubmit={handleUpdatePassword} className="space-y-6" autoComplete="off">
                 <div className="space-y-2">
                   <Label htmlFor="currPass" className="text-[#E5E5E5]">Current Password</Label>
-                  <Input id="currPass" type="password" placeholder="••••••••" className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" />
+                  <Input 
+                    id="currPass" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={currPass}
+                    onChange={(e) => setCurrPass(e.target.value)}
+                    autoComplete="current-password"
+                    className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
+                    required
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="newPass" className="text-[#E5E5E5]">New Password</Label>
-                    <Input id="newPass" type="password" placeholder="••••••••" className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" />
+                    <Input 
+                      id="newPass" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={newPass}
+                      onChange={(e) => setNewPass(e.target.value)}
+                      autoComplete="new-password"
+                      className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPass" className="text-[#E5E5E5]">Confirm Password</Label>
-                    <Input id="confirmPass" type="password" placeholder="••••••••" className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" />
+                    <Input 
+                      id="confirmPass" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={confirmPass}
+                      onChange={(e) => setConfirmPass(e.target.value)}
+                      autoComplete="new-password"
+                      className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
+                      required
+                    />
                   </div>
                 </div>
+
+                {passError && <p className="text-red-500 text-sm font-medium">{passError}</p>}
 
                 <div className="flex items-center gap-4 p-4 mt-6 rounded-xl bg-black border border-[#262626]">
                    <div className="w-10 h-10 rounded-full bg-[#262626] flex items-center justify-center text-[#FACC15]">
@@ -272,8 +334,12 @@ export const Profile = () => {
                 </div>
 
                 <div className="pt-4 flex justify-end">
-                  <Button type="submit" className="bg-[#FACC15] hover:bg-[#EAB308] text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)]">
-                    Update Password
+                  <Button 
+                    type="submit" 
+                    disabled={passLoading}
+                    className="bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)]"
+                  >
+                    {passLoading ? 'Updating...' : 'Update Password'}
                   </Button>
                 </div>
               </form>
