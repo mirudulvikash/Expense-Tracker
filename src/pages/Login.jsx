@@ -35,10 +35,14 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 -mt-[88px] animate-in fade-in duration-700">
-      <Card className="w-full max-w-md bg-[#1a1a1a] shadow-[0_0_40px_rgba(250,204,21,0.05)] border border-[#262626]">
+    <div 
+      className="bg-cover bg-center bg-no-repeat relative min-h-screen flex items-center justify-center p-6 -mt-[88px] animate-in fade-in duration-700"
+      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1616077168079-7e84a4c65f88?q=80&w=1920&auto=format&fit=crop')" }}
+    >
+      <div className="absolute inset-0 bg-black/70"></div>
+      <Card className="w-full max-w-md bg-[#1a1a1a]/95 backdrop-blur-md shadow-[0_0_40px_rgba(250,204,21,0.1)] border border-[#262626] relative z-10">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#FACC15] rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-[#FACC15] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
@@ -55,7 +59,7 @@ export const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="off"
-              className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4"
+              className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4"
               required 
             />
           </div>
@@ -73,7 +77,7 @@ export const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
-                className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
+                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
                 required 
               />
               <button

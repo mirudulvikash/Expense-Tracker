@@ -45,10 +45,14 @@ export const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 -mt-[88px] animate-in fade-in duration-700">
-      <Card className="w-full max-w-md bg-[#1a1a1a] shadow-[0_0_40px_rgba(250,204,21,0.05)] border border-[#262626]">
+    <div 
+      className="bg-cover bg-center bg-no-repeat relative min-h-screen flex items-center justify-center p-6 -mt-[88px] animate-in fade-in duration-700"
+      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1616077168079-7e84a4c65f88?q=80&w=1920&auto=format&fit=crop')" }}
+    >
+      <div className="absolute inset-0 bg-black/70"></div>
+      <Card className="w-full max-w-md bg-[#1a1a1a]/95 backdrop-blur-md shadow-[0_0_40px_rgba(250,204,21,0.1)] border border-[#262626] relative z-10">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#FACC15] rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-[#FACC15] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Create Account</h2>
@@ -66,7 +70,7 @@ export const Signup = () => {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 autoComplete="off"
-                className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
+                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
                 required 
               />
             </div>
@@ -79,7 +83,7 @@ export const Signup = () => {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 autoComplete="off"
-                className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
+                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
                 required 
               />
             </div>
@@ -94,7 +98,7 @@ export const Signup = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="off"
-              className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
+              className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
               required 
             />
           </div>
@@ -110,7 +114,7 @@ export const Signup = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
-                  className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
+                  className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
                   required 
                 />
                 <button
@@ -133,7 +137,7 @@ export const Signup = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   autoComplete="new-password"
-                  className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
+                  className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
                   required 
                 />
                 <button
