@@ -20,27 +20,28 @@ export const Profile = () => {
     lastName: storedUser.lastName || userProfile?.lastName || '',
     email: storedUser.email || userProfile?.email || '',
     avatar: userProfile?.avatar || userProfile?.avatar_url || '',
-    loanAmount: userProfile?.base_loan ?? userProfile?.loanAmount ?? 0,
-    base_loan: userProfile?.base_loan ?? userProfile?.loanAmount ?? 0
+    loanAmount: Number(userProfile?.base_loan ?? userProfile?.loanAmount) || 0,
+    base_loan: Number(userProfile?.base_loan ?? userProfile?.loanAmount) || 0
   });
 
   useEffect(() => {
     if (userProfile) {
+      const parsedLoan = Number(userProfile.base_loan ?? userProfile.loanAmount) || 0;
       setLocalProfile(prev => ({
         ...prev,
         firstName: userProfile.firstName || storedUser.firstName || prev.firstName,
         lastName: userProfile.lastName || storedUser.lastName || prev.lastName,
         email: userProfile.email || storedUser.email || prev.email,
         avatar: userProfile.avatar || userProfile.avatar_url || prev.avatar,
-        loanAmount: userProfile.base_loan ?? userProfile.loanAmount ?? prev.loanAmount ?? 0,
-        base_loan: userProfile.base_loan ?? userProfile.loanAmount ?? prev.base_loan ?? 0
+        loanAmount: parsedLoan,
+        base_loan: parsedLoan
       }));
     }
   }, [userProfile]);
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const loanVal = Number(localProfile.loanAmount ?? localProfile.base_loan ?? 0);
+    const loanVal = Number(localProfile.base_loan ?? localProfile.loanAmount ?? 0);
     await updateUserProfile({
       ...localProfile,
       base_loan: loanVal,
@@ -74,7 +75,13 @@ export const Profile = () => {
   };
 
   const handleChange = (e) => {
-    setLocalProfile({ ...localProfile, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    if (id === 'loanAmount' || id === 'base_loan') {
+      const val = value === '' ? 0 : Number(value);
+      setLocalProfile(prev => ({ ...prev, loanAmount: val, base_loan: val }));
+    } else {
+      setLocalProfile(prev => ({ ...prev, [id]: value }));
+    }
   };
 
   const handleImageUpload = (e) => {
@@ -82,7 +89,7 @@ export const Profile = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLocalProfile({ ...localProfile, avatar: reader.result });
+        setLocalProfile(prev => ({ ...prev, avatar: reader.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -196,7 +203,7 @@ export const Profile = () => {
                     <Input 
                       id="loanAmount" 
                       type="number" 
-                      value={localProfile.loanAmount || ''} 
+                      value={localProfile.base_loan !== undefined ? localProfile.base_loan : 0} 
                       onChange={handleChange}
                       className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
                     />

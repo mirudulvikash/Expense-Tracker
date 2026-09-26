@@ -159,7 +159,7 @@ export const GlobalProvider = ({ children }) => {
         const profileData = await profileRes.json();
         const formattedProfile = formatUserProfile({
           ...profileData,
-          base_loan: Number(profileData.base_loan)
+          base_loan: Number(profileData.base_loan) || 0
         });
         dispatch({ type: 'SET_USER_PROFILE', payload: formattedProfile });
       } else {
