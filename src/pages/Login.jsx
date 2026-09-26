@@ -36,7 +36,7 @@ export const Login = () => {
 
   return (
     <div 
-      className="bg-cover bg-center bg-no-repeat relative min-h-screen flex items-center justify-center p-6 -mt-[88px] animate-in fade-in duration-700"
+      className="bg-cover bg-center bg-no-repeat relative min-h-screen flex items-center justify-center p-6 animate-in fade-in duration-700"
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1616077168079-7e84a4c65f88?q=80&w=1920&auto=format&fit=crop')" }}
     >
       <div className="absolute inset-0 bg-black/70"></div>

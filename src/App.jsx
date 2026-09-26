@@ -1,14 +1,15 @@
 import React, { useContext, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { GlobalContext, GlobalProvider } from './context/GlobalState';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { GlobalProvider, GlobalContext } from './context/GlobalState';
 import { Dashboard } from './pages/Dashboard';
+import { Profile } from './pages/Profile';
 import { TransactionsPage } from './pages/TransactionsPage';
+import { Analytics } from './pages/Analytics';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-import { Analytics } from './pages/Analytics';
-import { Profile } from './pages/Profile';
 import { LayoutDashboard, ReceiptText, LogOut } from 'lucide-react';
 
+// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { authToken } = useContext(GlobalContext);
   if (!authToken) {
@@ -17,6 +18,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Guest Route Component (prevent authenticated users from visiting login/signup)
 const GuestRoute = ({ children }) => {
   const { authToken } = useContext(GlobalContext);
   if (authToken) {
@@ -25,6 +27,7 @@ const GuestRoute = ({ children }) => {
   return children;
 };
 
+// Top Navigation Bar
 const TopNav = () => {
   const location = useLocation();
   const { userProfile, authToken, logoutUser } = useContext(GlobalContext);
@@ -39,7 +42,7 @@ const TopNav = () => {
   ];
 
   return (
-    <header className="w-full flex justify-between py-6 px-8 items-center bg-black border-b border-[#1a1a1a] relative z-50">
+    <header className={`w-full flex justify-between py-6 px-8 items-center z-50 ${authToken ? 'bg-black border-b border-[#1a1a1a] relative' : 'absolute top-0 left-0 bg-transparent'}`}>
       {/* Empty div placeholder to preserve flex layout */}
       <div></div>
 
@@ -129,35 +132,41 @@ const TopNav = () => {
 };
 
 function App() {
+  const { authToken } = useContext(GlobalContext);
+
   return (
-    <GlobalProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen bg-black text-white font-sans selection:bg-brand-500/30">
-          <TopNav />
-          <main className="flex-1 p-6 w-full max-w-[1400px] mx-auto">
-            <Routes>
-              {/* Public / Guest Routes */}
-              <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
-              <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+    <Router>
+      <div className="flex flex-col min-h-screen bg-black text-white font-sans selection:bg-brand-500/30 relative">
+        <TopNav />
+        <main className={authToken ? "flex-1 p-6 w-full max-w-[1400px] mx-auto" : "flex-1 w-full"}>
+          <Routes>
+            {/* Public / Guest Routes */}
+            <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+            <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
 
-              {/* Protected Dashboard Routes */}
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-              <Route path="/payment" element={<ProtectedRoute><div className="text-slate-400">Payment page coming soon...</div></ProtectedRoute>} />
-              <Route path="/plan" element={<ProtectedRoute><div className="text-slate-400">Plan page coming soon...</div></ProtectedRoute>} />
-              <Route path="/cards" element={<ProtectedRoute><div className="text-slate-400">Cards page coming soon...</div></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><div className="text-slate-400">Settings page coming soon...</div></ProtectedRoute>} />
+            {/* Protected Dashboard Routes */}
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            <Route path="/payment" element={<ProtectedRoute><div className="text-slate-400">Payment page coming soon...</div></ProtectedRoute>} />
+            <Route path="/plan" element={<ProtectedRoute><div className="text-slate-400">Plan page coming soon...</div></ProtectedRoute>} />
+            <Route path="/cards" element={<ProtectedRoute><div className="text-slate-400">Cards page coming soon...</div></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><div className="text-slate-400">Settings page coming soon...</div></ProtectedRoute>} />
 
-              {/* Catch-all fallback */}
-              <Route path="*" element={<Navigate to="/signup" replace />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </GlobalProvider>
+            {/* Catch-all fallback */}
+            <Route path="*" element={<Navigate to="/signup" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
-export default App;
+export default function AppWrapper() {
+  return (
+    <GlobalProvider>
+      <App />
+    </GlobalProvider>
+  );
+}

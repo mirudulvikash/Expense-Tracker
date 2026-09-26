@@ -1,42 +1,41 @@
 import React, { useState, useContext } from 'react';
-import { GlobalContext } from '../context/GlobalState';
 import { Eye, EyeOff } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
 import { Link, useNavigate } from 'react-router-dom';
+import { GlobalContext } from '../context/GlobalState';
 
 export const Signup = () => {
   const { signupUser } = useContext(GlobalContext);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const isFormValid = firstName && lastName && email && password && confirmPassword;
+  const isFormValid = name && email && password && confirmPassword;
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (password !== confirmPassword) {
-      setError("Passwords do not match!");
+      setError('Passwords do not match');
       return;
     }
 
     if (isFormValid) {
       setLoading(true);
-      const fullName = `${firstName} ${lastName}`.trim();
-      const res = await signupUser({ name: fullName, email, password });
+      const res = await signupUser({ name, email, password });
       setLoading(false);
 
       if (res.success) {
+        alert("Account created successfully! Please sign in with your credentials.");
         navigate('/login');
       } else {
         setError(res.error || 'Failed to create account.');
@@ -46,7 +45,7 @@ export const Signup = () => {
 
   return (
     <div 
-      className="bg-cover bg-center bg-no-repeat relative min-h-screen flex items-center justify-center p-6 -mt-[88px] animate-in fade-in duration-700"
+      className="bg-cover bg-center bg-no-repeat relative min-h-screen flex items-center justify-center p-6 animate-in fade-in duration-700"
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1616077168079-7e84a4c65f88?q=80&w=1920&auto=format&fit=crop')" }}
     >
       <div className="absolute inset-0 bg-black/70"></div>
@@ -59,34 +58,19 @@ export const Signup = () => {
           <p className="text-[#A3A3A3]">Join ExpenseFlow to start tracking</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-5" autoComplete="off">
-          <div className="flex gap-4">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="firstName" className="text-[#E5E5E5] font-medium">First Name</Label>
-              <Input 
-                id="firstName" 
-                type="text" 
-                placeholder="John" 
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                autoComplete="off"
-                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
-                required 
-              />
-            </div>
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="lastName" className="text-[#E5E5E5] font-medium">Last Name</Label>
-              <Input 
-                id="lastName" 
-                type="text" 
-                placeholder="Doe" 
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                autoComplete="off"
-                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
-                required 
-              />
-            </div>
+        <form onSubmit={handleSignup} className="space-y-4" autoComplete="off">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-[#E5E5E5] font-medium">Full Name</Label>
+            <Input 
+              id="name" 
+              type="text" 
+              placeholder="John Doe" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="off"
+              className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4"
+              required 
+            />
           </div>
 
           <div className="space-y-2">
@@ -98,56 +82,54 @@ export const Signup = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="off"
-              className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
+              className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4"
               required 
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-5">
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-[#E5E5E5] font-medium">Password</Label>
-              <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
-                  required 
-                />
-                <button
-                  type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-white transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-[#E5E5E5] font-medium">Password</Label>
+            <div className="relative">
+              <Input 
+                id="password" 
+                type={showPassword ? 'text' : 'password'} 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
+                required 
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-white transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-[#E5E5E5] font-medium">Confirm Password</Label>
-              <div className="relative">
-                <Input 
-                  id="confirmPassword" 
-                  type={showConfirmPassword ? 'text' : 'password'} 
-                  placeholder="••••••••" 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  autoComplete="new-password"
-                  className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
-                  required 
-                />
-                <button
-                  type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-white transition-colors"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-[#E5E5E5] font-medium">Confirm Password</Label>
+            <div className="relative">
+              <Input 
+                id="confirmPassword" 
+                type={showConfirmPassword ? 'text' : 'password'} 
+                placeholder="••••••••" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
+                required 
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-white transition-colors"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
           </div>
 
