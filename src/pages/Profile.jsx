@@ -3,11 +3,11 @@ import { GlobalContext } from '../context/GlobalState';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
-import { User, Mail, Shield, Bell, KeySquare, Smartphone } from 'lucide-react';
+import { User, Mail, Shield, Bell, Smartphone, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Profile = () => {
-  const { budget, setBudget, userProfile, updateUserProfile } = useContext(GlobalContext);
+  const { budget, setBudget, userProfile, updateUserProfile, deleteAccount, logoutUser } = useContext(GlobalContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -56,6 +56,18 @@ export const Profile = () => {
     alert("Profile settings saved successfully!");
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm("Are you sure you want to permanently delete your account and all data? This cannot be undone.");
+    if (confirmed) {
+      const success = await deleteAccount();
+      if (success) {
+        navigate('/signup');
+      } else {
+        alert("Failed to delete account. Please try again.");
+      }
+    }
+  };
+
   const handleStaticSave = (e) => {
     e.preventDefault();
     alert("Preferences updated!");
@@ -75,7 +87,6 @@ export const Profile = () => {
       reader.readAsDataURL(file);
     }
   };
-
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
@@ -156,7 +167,7 @@ export const Profile = () => {
                     <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#A3A3A3]" />
                     <Input type="email" id="email" value={localProfile.email} onChange={handleChange} className="bg-black border-[#262626] h-11 rounded-lg pl-10 focus:ring-[#FACC15]" />
                   </div>
-                  <p className="text-xs text-[#A3A3A3] mt-1">Update your active local session email address.</p>
+                  <p className="text-xs text-[#A3A3A3] mt-1">Update your active session email address.</p>
                 </div>
                 
                 <h3 className="text-xl font-semibold mb-2 mt-8 text-white border-b border-[#262626] pb-4">App Preferences</h3>
@@ -199,6 +210,23 @@ export const Profile = () => {
                   </Button>
                 </div>
               </form>
+
+              {/* Danger Zone: Delete Account */}
+              <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
+                    <Trash2 size={16} /> Danger Zone
+                  </h4>
+                  <p className="text-xs text-[#A3A3A3]">Permanently remove your account, transactions, and budget data.</p>
+                </div>
+                <Button 
+                  type="button" 
+                  onClick={handleDeleteAccount} 
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all"
+                >
+                  Delete Account
+                </Button>
+              </div>
             </>
           )}
 
@@ -242,6 +270,23 @@ export const Profile = () => {
                   </Button>
                 </div>
               </form>
+
+              {/* Danger Zone: Delete Account */}
+              <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
+                    <Trash2 size={16} /> Danger Zone
+                  </h4>
+                  <p className="text-xs text-[#A3A3A3]">Permanently remove your account, transactions, and budget data.</p>
+                </div>
+                <Button 
+                  type="button" 
+                  onClick={handleDeleteAccount} 
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all"
+                >
+                  Delete Account
+                </Button>
+              </div>
             </>
           )}
 
@@ -282,6 +327,23 @@ export const Profile = () => {
                   </Button>
                 </div>
               </form>
+
+              {/* Danger Zone: Delete Account */}
+              <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
+                    <Trash2 size={16} /> Danger Zone
+                  </h4>
+                  <p className="text-xs text-[#A3A3A3]">Permanently remove your account, transactions, and budget data.</p>
+                </div>
+                <Button 
+                  type="button" 
+                  onClick={handleDeleteAccount} 
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all"
+                >
+                  Delete Account
+                </Button>
+              </div>
             </>
           )}
         </Card>

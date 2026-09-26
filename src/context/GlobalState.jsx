@@ -373,6 +373,30 @@ export const GlobalProvider = ({ children }) => {
     }
   }
 
+  async function deleteAccount() {
+    if (!authToken) return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/profile`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        logoutUser();
+        return true;
+      } else {
+        console.error('Failed to delete account:', res.statusText);
+        return false;
+      }
+    } catch (err) {
+      console.error('Account Deletion Error:', err);
+      return false;
+    }
+  }
+
   // Get budget for a specific month or default
   const getBudgetForMonth = (monthKey = null) => {
     const key = monthKey || getCurrentMonthKey();
@@ -390,6 +414,7 @@ export const GlobalProvider = ({ children }) => {
       loginUser,
       signupUser,
       logoutUser,
+      deleteAccount,
       deleteTransaction,
       addTransaction,
       setBudget,
