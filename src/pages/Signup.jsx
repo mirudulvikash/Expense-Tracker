@@ -7,7 +7,7 @@ import { Input, Label } from '../components/ui/Input';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const Signup = () => {
-  const { updateUserProfile, userProfile } = useContext(GlobalContext);
+  const { signupUser } = useContext(GlobalContext);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -16,11 +16,12 @@ export const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const isFormValid = firstName && lastName && email && password && confirmPassword;
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
     
@@ -30,17 +31,16 @@ export const Signup = () => {
     }
 
     if (isFormValid) {
-      updateUserProfile({
-        ...userProfile,
-        firstName,
-        lastName,
-        email,
-        avatar: `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=EAB308&color=000&size=150`
-      });
-      // Save for auth flow
-      localStorage.setItem('user', JSON.stringify({ firstName, lastName, email, password }));
-      // Redirect to login after successful signup
-      navigate('/login');
+      setLoading(true);
+      const fullName = `${firstName} ${lastName}`.trim();
+      const res = await signupUser({ name: fullName, email, password });
+      setLoading(false);
+
+      if (res.success) {
+        navigate('/');
+      } else {
+        setError(res.error || 'Failed to create account.');
+      }
     }
   };
 
@@ -146,10 +146,10 @@ export const Signup = () => {
 
           <Button 
             type="submit" 
-            disabled={!isFormValid}
+            disabled={!isFormValid || loading}
             className="w-full h-12 mt-4 bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 disabled:hover:bg-[#FACC15] text-black font-bold text-lg rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] hover:shadow-[0_6px_20px_0_rgba(250,204,21,0.3)] transition-all"
           >
-            Sign Up
+            {loading ? 'Creating Account...' : 'Sign Up'}
           </Button>
 
           <p className="text-center text-sm text-[#A3A3A3] mt-6">

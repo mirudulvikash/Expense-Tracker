@@ -1,34 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
 import { Link, useNavigate } from 'react-router-dom';
+import { GlobalContext } from '../context/GlobalState';
 
 export const Login = () => {
+  const { loginUser } = useContext(GlobalContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const isFormValid = email && password;
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
     if (isFormValid) {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        if (user.email === email && user.password === password) {
-          navigate('/profile');
-          return;
-        }
+      setLoading(true);
+      const res = await loginUser({ email, password });
+      setLoading(false);
+
+      if (res.success) {
+        navigate('/');
+      } else {
+        setError(res.error || 'Invalid email or password.');
       }
-      
-      setError('Invalid email or password.');
     }
   };
 
@@ -86,10 +88,10 @@ export const Login = () => {
 
           <Button 
             type="submit" 
-            disabled={!isFormValid}
+            disabled={!isFormValid || loading}
             className="w-full h-12 mt-4 bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 disabled:hover:bg-[#FACC15] text-black font-bold text-lg rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] hover:shadow-[0_6px_20px_0_rgba(250,204,21,0.3)] transition-all"
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
 
           <p className="text-center text-sm text-[#A3A3A3] mt-6">

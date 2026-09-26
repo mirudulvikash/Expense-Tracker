@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect } from 'react';
+import React, { createContext, useReducer, useEffect, useState, useCallback } from 'react';
 
 const API_BASE_URL = 'https://expense-tracker-backend-mz0a.onrender.com';
 
@@ -20,22 +20,22 @@ const formatTransaction = (tx) => {
 // Helper to normalize user profile object from backend
 const formatUserProfile = (data) => {
   if (!data) return {
-    id: 1,
+    id: null,
     name: 'Guest User',
     firstName: 'Guest',
     lastName: 'User',
-    email: 'guest@expenseflow.app',
+    email: '',
     avatar: 'https://ui-avatars.com/api/?name=Guest&background=EAB308&color=000&size=150',
     avatar_url: 'https://ui-avatars.com/api/?name=Guest&background=EAB308&color=000&size=150',
     loanAmount: 0,
     base_loan: 0
   };
 
-  const name = data.name || 'Guest User';
+  const name = data.name || 'User';
   const nameParts = name.trim().split(' ');
-  const firstName = data.firstName || nameParts[0] || 'Guest';
-  const lastName = data.lastName || nameParts.slice(1).join(' ') || 'User';
-  const avatar_url = data.avatar_url || data.avatar || 'https://ui-avatars.com/api/?name=Guest&background=EAB308&color=000&size=150';
+  const firstName = data.firstName || nameParts[0] || 'User';
+  const lastName = data.lastName || nameParts.slice(1).join(' ') || '';
+  const avatar_url = data.avatar_url || data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EAB308&color=000&size=150`;
   const base_loan = Number(data.base_loan ?? data.loanAmount ?? 0);
 
   return {
@@ -43,7 +43,7 @@ const formatUserProfile = (data) => {
     name,
     firstName,
     lastName,
-    email: data.email || 'guest@expenseflow.app',
+    email: data.email || '',
     avatar: avatar_url,
     avatar_url,
     loanAmount: base_loan,
@@ -99,68 +99,167 @@ const AppReducer = (state, action) => {
         ...state,
         userProfile: action.payload
       };
+    case 'LOGOUT':
+      return {
+        ...state,
+        transactions: [],
+        budgets: {},
+        userProfile: formatUserProfile(null)
+      };
     default:
       return state;
   }
-}
+};
 
 // Provider component
 export const GlobalProvider = ({ children }) => {
   const [state, dispatch] = useReducer(AppReducer, initialState);
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('token') || localStorage.getItem('authToken') || '');
 
-  // Fetch transactions, budgets, and user profile from backend on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [txRes, budgetRes, profileRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/transactions`),
-          fetch(`${API_BASE_URL}/api/budgets`),
-          fetch(`${API_BASE_URL}/api/profile`)
-        ]);
+  // Helper to fetch user data using a given token or current authToken
+  const fetchUserData = useCallback(async (token) => {
+    const activeToken = token || authToken;
+    if (!activeToken) {
+      dispatch({ type: 'LOGOUT' });
+      return;
+    }
 
-        if (txRes.ok) {
-          const data = await txRes.json();
-          const formatted = data.map(formatTransaction);
-          dispatch({ type: 'SET_TRANSACTIONS', payload: formatted });
-        } else {
-          console.error('Failed to fetch transactions from server:', txRes.statusText);
-        }
-
-        if (budgetRes.ok) {
-          const budgetData = await budgetRes.json();
-          const budgetMap = {};
-          budgetData.forEach(item => {
-            budgetMap[item.month_year] = Number(item.target_amount);
-          });
-          dispatch({ type: 'SET_BUDGETS', payload: budgetMap });
-        } else {
-          console.error('Failed to fetch budgets from server:', budgetRes.statusText);
-        }
-
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          const formattedProfile = formatUserProfile({
-            ...profileData,
-            base_loan: Number(profileData.base_loan)
-          });
-          dispatch({ type: 'SET_USER_PROFILE', payload: formattedProfile });
-        } else {
-          console.error('Failed to fetch user profile from server:', profileRes.statusText);
-        }
-      } catch (err) {
-        console.error('Error in initial data fetch (transactions/budgets/profile):', err);
-        console.error(err);
-      }
+    const headers = {
+      'Authorization': `Bearer ${activeToken}`,
+      'Content-Type': 'application/json'
     };
 
-    fetchData();
-  }, []);
+    try {
+      const [txRes, budgetRes, profileRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/transactions`, { headers }),
+        fetch(`${API_BASE_URL}/api/budgets`, { headers }),
+        fetch(`${API_BASE_URL}/api/profile`, { headers })
+      ]);
 
-  // Actions
+      if (txRes.ok) {
+        const data = await txRes.json();
+        const formatted = data.map(formatTransaction);
+        dispatch({ type: 'SET_TRANSACTIONS', payload: formatted });
+      } else {
+        console.error('Failed to fetch transactions from server:', txRes.statusText);
+      }
+
+      if (budgetRes.ok) {
+        const budgetData = await budgetRes.json();
+        const budgetMap = {};
+        budgetData.forEach(item => {
+          budgetMap[item.month_year] = Number(item.target_amount);
+        });
+        dispatch({ type: 'SET_BUDGETS', payload: budgetMap });
+      } else {
+        console.error('Failed to fetch budgets from server:', budgetRes.statusText);
+      }
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const formattedProfile = formatUserProfile({
+          ...profileData,
+          base_loan: Number(profileData.base_loan)
+        });
+        dispatch({ type: 'SET_USER_PROFILE', payload: formattedProfile });
+      } else {
+        console.error('Failed to fetch user profile from server:', profileRes.statusText);
+      }
+    } catch (err) {
+      console.error('Error in data fetch (transactions/budgets/profile):', err);
+    }
+  }, [authToken]);
+
+  useEffect(() => {
+    if (authToken) {
+      fetchUserData(authToken);
+    } else {
+      dispatch({ type: 'LOGOUT' });
+    }
+  }, [authToken, fetchUserData]);
+
+  // Auth Actions
+  async function loginUser(credentials) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Failed to log in' };
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('authToken', data.token);
+      setAuthToken(data.token);
+
+      if (data.user) {
+        dispatch({ type: 'SET_USER_PROFILE', payload: formatUserProfile(data.user) });
+      }
+
+      fetchUserData(data.token);
+      return { success: true, user: data.user };
+    } catch (err) {
+      console.error('Error in loginUser:', err);
+      return { success: false, error: 'Network error or server unreachable' };
+    }
+  }
+
+  async function signupUser(userData) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Failed to sign up' };
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('authToken', data.token);
+      setAuthToken(data.token);
+
+      if (data.user) {
+        dispatch({ type: 'SET_USER_PROFILE', payload: formatUserProfile(data.user) });
+      }
+
+      fetchUserData(data.token);
+      return { success: true, user: data.user };
+    } catch (err) {
+      console.error('Error in signupUser:', err);
+      return { success: false, error: 'Network error or server unreachable' };
+    }
+  }
+
+  function logoutUser() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    setAuthToken('');
+    dispatch({ type: 'LOGOUT' });
+  }
+
+  // Data Actions with Authorization header
   async function deleteTransaction(id) {
+    if (!authToken) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/transactions/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
       });
       if (res.ok) {
         dispatch({ type: 'DELETE_TRANSACTION', payload: id });
@@ -169,11 +268,11 @@ export const GlobalProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Error in deleteTransaction request:', err);
-      console.error(err);
     }
   }
 
   async function addTransaction(transaction) {
+    if (!authToken) return;
     try {
       const payload = {
         title: transaction.title || transaction.text,
@@ -186,6 +285,7 @@ export const GlobalProvider = ({ children }) => {
       const res = await fetch(`${API_BASE_URL}/api/transactions`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -200,11 +300,11 @@ export const GlobalProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Error in addTransaction request:', err);
-      console.error(err);
     }
   }
 
   async function setBudget(newAmount) {
+    if (!authToken) return;
     const month_year = new Date().toISOString().slice(0, 7);
     const rawVal = typeof newAmount === 'object' && newAmount !== null ? (newAmount.target_amount ?? newAmount.amount) : newAmount;
     const target_amount = Number(rawVal);
@@ -213,6 +313,7 @@ export const GlobalProvider = ({ children }) => {
       const res = await fetch(`${API_BASE_URL}/api/budgets`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -235,13 +336,13 @@ export const GlobalProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Error in setBudget request:', err);
-      console.error(err);
     }
   }
 
   async function updateUserProfile(profileData) {
+    if (!authToken) return;
     try {
-      const name = profileData.name || `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || 'Guest User';
+      const name = profileData.name || `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || 'User';
       const avatar_url = profileData.avatar_url || profileData.avatar || '';
       const base_loan = Number(profileData.base_loan ?? profileData.loanAmount ?? 0);
 
@@ -256,6 +357,7 @@ export const GlobalProvider = ({ children }) => {
       const res = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: {
+          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
@@ -287,11 +389,15 @@ export const GlobalProvider = ({ children }) => {
 
   return (
     <GlobalContext.Provider value={{
+      authToken,
       transactions: state.transactions,
       budgets: state.budgets,
       budget: getBudgetForMonth(), // Expose current month's budget for convenience
       getBudgetForMonth,
       userProfile: state.userProfile,
+      loginUser,
+      signupUser,
+      logoutUser,
       deleteTransaction,
       addTransaction,
       setBudget,
