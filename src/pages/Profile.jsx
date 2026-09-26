@@ -251,7 +251,7 @@ export const Profile = () => {
                 </div>
               </form>
 
-              {/* Danger Zone: Delete Account */}
+              {/* Danger Zone: Delete Account (Exclusive to Personal Information view) */}
               <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                   <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
@@ -343,23 +343,6 @@ export const Profile = () => {
                   </Button>
                 </div>
               </form>
-
-              {/* Danger Zone: Delete Account */}
-              <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
-                    <Trash2 size={16} /> Danger Zone
-                  </h4>
-                  <p className="text-xs text-[#A3A3A3]">Permanently remove your account, transactions, and budget data.</p>
-                </div>
-                <Button 
-                  type="button" 
-                  onClick={handleDeleteAccount} 
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all"
-                >
-                  Delete Account
-                </Button>
-              </div>
             </>
           )}
 
@@ -400,23 +383,6 @@ export const Profile = () => {
                   </Button>
                 </div>
               </form>
-
-              {/* Danger Zone: Delete Account */}
-              <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
-                    <Trash2 size={16} /> Danger Zone
-                  </h4>
-                  <p className="text-xs text-[#A3A3A3]">Permanently remove your account, transactions, and budget data.</p>
-                </div>
-                <Button 
-                  type="button" 
-                  onClick={handleDeleteAccount} 
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all"
-                >
-                  Delete Account
-                </Button>
-              </div>
             </>
           )}
         </Card>
