@@ -139,7 +139,10 @@ export const GlobalProvider = ({ children }) => {
 
         if (profileRes.ok) {
           const profileData = await profileRes.json();
-          const formattedProfile = formatUserProfile(profileData);
+          const formattedProfile = formatUserProfile({
+            ...profileData,
+            base_loan: Number(profileData.base_loan)
+          });
           dispatch({ type: 'SET_USER_PROFILE', payload: formattedProfile });
         } else {
           console.error('Failed to fetch user profile from server:', profileRes.statusText);
@@ -236,39 +239,43 @@ export const GlobalProvider = ({ children }) => {
     }
   }
 
-  async function updateUserProfile(profile) {
+  async function updateUserProfile(profileData) {
     try {
-      const name = profile.name || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Guest User';
-      const avatar_url = profile.avatar_url || profile.avatar || '';
-      const base_loan = Number(profile.base_loan ?? profile.loanAmount ?? 0);
+      const name = profileData.name || `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || 'Guest User';
+      const avatar_url = profileData.avatar_url || profileData.avatar || '';
+      const base_loan = Number(profileData.base_loan ?? profileData.loanAmount ?? 0);
+
+      const payload = {
+        name,
+        avatar_url,
+        base_loan
+      };
+
+      console.log('Sending Profile:', payload);
 
       const res = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          name,
-          avatar_url,
-          base_loan
-        })
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
         const updatedRow = await res.json();
         const formatted = formatUserProfile({
           ...updatedRow,
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          email: profile.email || updatedRow.email
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          email: profileData.email || updatedRow.email,
+          base_loan: Number(updatedRow.base_loan)
         });
         dispatch({ type: 'SET_USER_PROFILE', payload: formatted });
       } else {
         console.error('Failed to update user profile on server:', res.statusText);
       }
     } catch (err) {
-      console.error('Error in updateUserProfile request:', err);
-      console.error(err);
+      console.error('Profile Update Error:', err);
     }
   }
 
