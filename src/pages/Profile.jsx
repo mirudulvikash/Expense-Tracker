@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { GlobalContext } from '../context/GlobalState';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -19,13 +19,33 @@ export const Profile = () => {
     firstName: storedUser.firstName || userProfile?.firstName || '',
     lastName: storedUser.lastName || userProfile?.lastName || '',
     email: storedUser.email || userProfile?.email || '',
-    avatar: userProfile?.avatar || '',
-    loanAmount: userProfile?.loanAmount || 0
+    avatar: userProfile?.avatar || userProfile?.avatar_url || '',
+    loanAmount: userProfile?.base_loan ?? userProfile?.loanAmount ?? 0,
+    base_loan: userProfile?.base_loan ?? userProfile?.loanAmount ?? 0
   });
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    if (userProfile) {
+      setLocalProfile(prev => ({
+        ...prev,
+        firstName: userProfile.firstName || storedUser.firstName || prev.firstName,
+        lastName: userProfile.lastName || storedUser.lastName || prev.lastName,
+        email: userProfile.email || storedUser.email || prev.email,
+        avatar: userProfile.avatar || userProfile.avatar_url || prev.avatar,
+        loanAmount: userProfile.base_loan ?? userProfile.loanAmount ?? prev.loanAmount ?? 0,
+        base_loan: userProfile.base_loan ?? userProfile.loanAmount ?? prev.base_loan ?? 0
+      }));
+    }
+  }, [userProfile]);
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    updateUserProfile(localProfile);
+    const loanVal = Number(localProfile.loanAmount ?? localProfile.base_loan ?? 0);
+    await updateUserProfile({
+      ...localProfile,
+      base_loan: loanVal,
+      loanAmount: loanVal
+    });
     const existingUser = JSON.parse(localStorage.getItem('user')) || {};
     localStorage.setItem('user', JSON.stringify({ 
       ...existingUser, 
