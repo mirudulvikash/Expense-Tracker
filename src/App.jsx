@@ -39,7 +39,7 @@ const TopNav = () => {
   ];
 
   return (
-    <header className="w-full flex justify-between py-6 px-8 items-center bg-black border-b border-[#1a1a1a]">
+    <header className="w-full flex justify-between py-6 px-8 items-center bg-black border-b border-[#1a1a1a] relative z-50">
       {/* Empty div placeholder to preserve flex layout */}
       <div></div>
 
