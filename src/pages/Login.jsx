@@ -8,8 +8,8 @@ import { GlobalContext } from '../context/GlobalState';
 
 export const Login = () => {
   const { loginUser } = useContext(GlobalContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,15 +45,16 @@ export const Login = () => {
           <p className="text-[#A3A3A3]">Sign in to your ExpenseFlow account</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-[#E5E5E5] font-medium">Email Address</Label>
             <Input 
               id="email" 
               type="email" 
-              placeholder="you@example.com" 
+              placeholder="john.doe@example.com" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="off"
               className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4"
               required 
             />
@@ -71,6 +72,7 @@ export const Login = () => {
                 placeholder="••••••••" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
                 required 
               />

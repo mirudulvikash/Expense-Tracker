@@ -8,11 +8,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export const Signup = () => {
   const { signupUser } = useContext(GlobalContext);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
@@ -55,7 +55,7 @@ export const Signup = () => {
           <p className="text-[#A3A3A3]">Join ExpenseFlow to start tracking</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-5">
+        <form onSubmit={handleSignup} className="space-y-5" autoComplete="off">
           <div className="flex gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="firstName" className="text-[#E5E5E5] font-medium">First Name</Label>
@@ -65,6 +65,7 @@ export const Signup = () => {
                 placeholder="John" 
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="off"
                 className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
                 required 
               />
@@ -77,6 +78,7 @@ export const Signup = () => {
                 placeholder="Doe" 
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                autoComplete="off"
                 className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
                 required 
               />
@@ -88,9 +90,10 @@ export const Signup = () => {
             <Input 
               id="email" 
               type="email" 
-              placeholder="you@example.com" 
+              placeholder="john.doe@example.com" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="off"
               className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 w-full"
               required 
             />
@@ -106,6 +109,7 @@ export const Signup = () => {
                   placeholder="••••••••" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
                   required 
                 />
@@ -128,6 +132,7 @@ export const Signup = () => {
                   placeholder="••••••••" 
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="bg-black border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 pr-12 w-full"
                   required 
                 />
