@@ -8,6 +8,8 @@ import { GlobalContext } from '../context/GlobalState';
 
 export const Signup = () => {
   const { signupUser } = useContext(GlobalContext);
+  const [step, setStep] = useState(1);
+  const [otp, setOtp] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,11 +37,41 @@ export const Signup = () => {
       setLoading(false);
 
       if (res.success) {
-        alert("Account created successfully! Please sign in with your credentials.");
-        navigate('/login');
+        setStep(2);
       } else {
         setError(res.error || 'Failed to create account.');
       }
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!otp) {
+      setError('Please enter the OTP');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp })
+      });
+      const data = await res.json();
+      setLoading(false);
+
+      if (res.ok) {
+        alert('Account verified successfully! Please sign in.');
+        navigate('/login');
+      } else {
+        setError(data.error || 'Failed to verify OTP');
+      }
+    } catch (err) {
+      setLoading(false);
+      setError('Network error');
     }
   };
 
@@ -54,10 +86,15 @@ export const Signup = () => {
           <div className="w-12 h-12 bg-[#FACC15] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Create Account</h2>
-          <p className="text-[#A3A3A3]">Join ExpenseFlow to start tracking</p>
+          <h2 className="text-3xl font-bold tracking-tight text-white mb-2">
+            {step === 1 ? 'Create Account' : 'Verify Email'}
+          </h2>
+          <p className="text-[#A3A3A3]">
+            {step === 1 ? 'Join ExpenseFlow to start tracking' : 'Enter the OTP sent to your email'}
+          </p>
         </div>
 
+        {step === 1 ? (
         <form onSubmit={handleSignup} className="space-y-4" autoComplete="off">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-[#E5E5E5] font-medium">Full Name</Label>
@@ -147,6 +184,32 @@ export const Signup = () => {
             Already have an account? <Link to="/login" className="text-white hover:text-[#FACC15] font-medium transition-colors">Sign in</Link>
           </p>
         </form>
+        ) : (
+        <form onSubmit={handleVerifyOtp} className="space-y-4" autoComplete="off">
+          <div className="space-y-2">
+            <Label htmlFor="otp" className="text-[#E5E5E5] font-medium">One-Time Password</Label>
+            <Input 
+              id="otp" 
+              type="text" 
+              placeholder="123456" 
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              autoComplete="off"
+              className="bg-black/80 border-[#262626] text-white focus:ring-[#FACC15] h-12 rounded-xl px-4 text-center tracking-widest text-lg"
+              required 
+              maxLength={6}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+          <Button 
+            type="submit" 
+            disabled={!otp || loading}
+            className="w-full h-12 mt-4 bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 disabled:hover:bg-[#FACC15] text-black font-bold text-lg rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] hover:shadow-[0_6px_20px_0_rgba(250,204,21,0.3)] transition-all"
+          >
+            {loading ? 'Verifying...' : 'Verify OTP'}
+          </Button>
+        </form>
+        )}
       </Card>
     </div>
   );

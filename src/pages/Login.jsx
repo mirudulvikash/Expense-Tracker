@@ -29,7 +29,11 @@ export const Login = () => {
       if (res.success) {
         navigate('/');
       } else {
-        setError(res.error || 'Invalid email or password.');
+        if (res.error && res.error.toLowerCase().includes('verify')) {
+          setError('Please verify your email first');
+        } else {
+          setError(res.error || 'Invalid email or password.');
+        }
       }
     }
   };

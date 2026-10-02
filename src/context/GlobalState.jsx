@@ -1,6 +1,6 @@
 import React, { createContext, useReducer, useEffect, useState, useCallback } from 'react';
 
-const API_BASE_URL = 'https://expense-tracker-backend-mz0a.onrender.com';
+const API_BASE_URL = 'http://localhost:5000';
 
 // Helper to get current month key (YYYY-MM)
 const getCurrentMonthKey = () => new Date().toISOString().slice(0, 7);
