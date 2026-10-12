@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { GlobalProvider, GlobalContext } from './context/GlobalState';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
@@ -7,21 +7,22 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { Analytics } from './pages/Analytics';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-import { LayoutDashboard, ReceiptText, LogOut } from 'lucide-react';
+import { GuestUser } from './pages/GuestUser';
+import { LayoutDashboard, ReceiptText, LogOut, Sparkles, UserPlus } from 'lucide-react';
 
-// Protected Route Component
+// Protected Route Component (allows both authenticated users and guest sessions)
 const ProtectedRoute = ({ children }) => {
-  const { authToken } = useContext(GlobalContext);
-  if (!authToken) {
+  const { authToken, isGuest } = useContext(GlobalContext);
+  if (!authToken && !isGuest) {
     return <Navigate to="/signup" replace />;
   }
   return children;
 };
 
-// Guest Route Component (prevent authenticated users from visiting login/signup)
+// Guest Route Component (prevent authenticated or guest users from visiting login/signup)
 const GuestRoute = ({ children }) => {
-  const { authToken } = useContext(GlobalContext);
-  if (authToken) {
+  const { authToken, isGuest } = useContext(GlobalContext);
+  if (authToken || isGuest) {
     return <Navigate to="/" replace />;
   }
   return children;
@@ -30,10 +31,12 @@ const GuestRoute = ({ children }) => {
 // Top Navigation Bar
 const TopNav = () => {
   const location = useLocation();
-  const { userProfile, authToken, logoutUser } = useContext(GlobalContext);
+  const { userProfile, authToken, isGuest, logoutUser } = useContext(GlobalContext);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const isActive = (path) => location.pathname === path;
+
+  const isLoggedIn = Boolean(authToken || isGuest);
 
   const navItems = [
     { name: 'Home', path: '/', icon: <LayoutDashboard size={16} /> },
@@ -42,12 +45,19 @@ const TopNav = () => {
   ];
 
   return (
-    <header className={`w-full flex justify-between py-6 px-8 items-center z-50 ${authToken ? 'bg-black border-b border-[#1a1a1a] relative' : 'absolute top-0 left-0 bg-transparent'}`}>
-      {/* Empty div placeholder to preserve flex layout */}
-      <div></div>
+    <header className={`w-full flex justify-between py-6 px-8 items-center z-50 ${isLoggedIn ? 'bg-black border-b border-[#1a1a1a] relative' : 'absolute top-0 left-0 bg-transparent'}`}>
+      {/* Brand logo or Guest pill */}
+      <div className="flex items-center gap-3">
+        {isGuest && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FACC15]/10 border border-[#FACC15]/30 text-[#FACC15] text-xs font-semibold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-[#FACC15] animate-pulse"></span>
+            <span>Guest Session</span>
+          </div>
+        )}
+      </div>
 
-      {/* Nav links (only shown if logged in) */}
-      {authToken ? (
+      {/* Nav links (only shown if logged in or guest) */}
+      {isLoggedIn ? (
         <nav className="flex items-center gap-1 bg-[#1a1a1a] rounded-full p-1.5 px-4 shadow-sm">
           {navItems.map((item) => (
             <Link
@@ -71,19 +81,29 @@ const TopNav = () => {
 
       {/* User Actions */}
       <div className="flex items-center gap-3 relative">
-        {authToken ? (
+        {isLoggedIn ? (
           <>
+            {isGuest && (
+              <Link
+                to="/signup"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[#FACC15] text-black hover:bg-[#EAB308] rounded-full transition-colors shadow-sm"
+              >
+                <UserPlus size={13} />
+                Save Permanently
+              </Link>
+            )}
+
             <div className="relative">
               <button 
                 onClick={() => { setShowNotifications(!showNotifications); setShowMessages(false); }}
-                className="w-10 h-10 rounded-full bg-[#1a1a1a] hover:bg-[#262626] flex items-center justify-center text-[#A3A3A3] transition-colors focus:ring-2 focus:ring-[#FACC15] outline-none"
+                className="w-10 h-10 rounded-full bg-[#1a1a1a] hover:bg-[#262626] flex items-center justify-center text-[#A3A3A3] transition-colors focus:ring-2 focus:ring-[#FACC15] outline-none cursor-pointer"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
               </button>
               {showNotifications && (
                 <div className="absolute top-12 right-0 mt-2 w-64 bg-[#1a1a1a] border border-[#262626] rounded-xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
                   <h4 className="text-white font-semibold mb-2 text-sm">Notifications</h4>
-                  <p className="text-xs text-[#A3A3A3]">You're all caught up! No new notifications right now.</p>
+                  <p className="text-xs text-[#A3A3A3]">{isGuest ? 'Welcome to Guest Sandbox! Add transactions freely.' : "You're all caught up! No new notifications right now."}</p>
                 </div>
               )}
             </div>
@@ -91,7 +111,7 @@ const TopNav = () => {
             <div className="relative">
               <button 
                 onClick={() => { setShowMessages(!showMessages); setShowNotifications(false); }}
-                className="w-10 h-10 rounded-full bg-[#1a1a1a] hover:bg-[#262626] flex items-center justify-center text-[#A3A3A3] transition-colors focus:ring-2 focus:ring-[#FACC15] outline-none"
+                className="w-10 h-10 rounded-full bg-[#1a1a1a] hover:bg-[#262626] flex items-center justify-center text-[#A3A3A3] transition-colors focus:ring-2 focus:ring-[#FACC15] outline-none cursor-pointer"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
               </button>
@@ -104,20 +124,24 @@ const TopNav = () => {
             </div>
 
             <Link to="/profile" className="w-10 h-10 rounded-full bg-brand-500 overflow-hidden ml-1 cursor-pointer border border-[#262626] hover:border-[#FACC15] transition-colors block">
-              <img src={userProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              <img src={userProfile?.avatar || 'https://ui-avatars.com/api/?name=Guest+User&background=FACC15&color=000&size=150'} alt="Avatar" className="w-full h-full object-cover" />
             </Link>
 
             <button
               onClick={logoutUser}
-              title="Logout"
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-red-400 bg-[#1a1a1a] hover:bg-red-500/10 border border-[#262626] hover:border-red-500/30 rounded-full transition-colors ml-1"
+              title={isGuest ? "Exit Guest Mode" : "Logout"}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-red-400 bg-[#1a1a1a] hover:bg-red-500/10 border border-[#262626] hover:border-red-500/30 rounded-full transition-colors ml-1 cursor-pointer"
             >
               <LogOut size={14} />
-              Logout
+              {isGuest ? 'Exit Guest' : 'Logout'}
             </button>
           </>
         ) : (
           <div className="flex items-center gap-3">
+            <Link to="/guest" className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-[#FACC15] hover:text-yellow-300 transition-colors">
+              <Sparkles size={14} />
+              Guest Demo
+            </Link>
             <Link to="/login" className="px-4 py-2 text-sm font-medium text-white hover:text-[#FACC15] transition-colors">
               Sign In
             </Link>
@@ -132,17 +156,19 @@ const TopNav = () => {
 };
 
 function App() {
-  const { authToken } = useContext(GlobalContext);
+  const { authToken, isGuest } = useContext(GlobalContext);
+  const isLoggedIn = Boolean(authToken || isGuest);
 
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-black text-white font-sans selection:bg-brand-500/30 relative">
         <TopNav />
-        <main className={authToken ? "flex-1 p-6 w-full max-w-[1400px] mx-auto" : "flex-1 w-full"}>
+        <main className={isLoggedIn ? "flex-1 p-6 w-full max-w-[1400px] mx-auto" : "flex-1 w-full"}>
           <Routes>
             {/* Public / Guest Routes */}
             <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
             <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+            <Route path="/guest" element={<GuestUser />} />
 
             {/* Protected Dashboard Routes */}
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

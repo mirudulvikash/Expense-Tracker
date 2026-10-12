@@ -5,6 +5,16 @@ const API_BASE_URL = 'http://localhost:5000';
 // Helper to get current month key (YYYY-MM)
 const getCurrentMonthKey = () => new Date().toISOString().slice(0, 7);
 
+// Default mock data for Guest User experience
+const DEFAULT_GUEST_TRANSACTIONS = [
+  { id: 'guest-tx-1', title: 'Monthly Salary', text: 'Monthly Salary', amount: 65000, type: 'income', category: 'Salary', date: new Date().toISOString().slice(0, 10) },
+  { id: 'guest-tx-2', title: 'Apartment Rent', text: 'Apartment Rent', amount: -18000, type: 'expense', category: 'Housing', date: new Date().toISOString().slice(0, 10) },
+  { id: 'guest-tx-3', title: 'Grocery Shopping', text: 'Grocery Shopping', amount: -4250, type: 'expense', category: 'Food', date: new Date().toISOString().slice(0, 10) },
+  { id: 'guest-tx-4', title: 'Freelance UI Design', text: 'Freelance UI Design', amount: 15000, type: 'income', category: 'Freelance', date: new Date().toISOString().slice(0, 10) },
+  { id: 'guest-tx-5', title: 'Electricity & Internet', text: 'Electricity & Internet', amount: -2100, type: 'expense', category: 'Utilities', date: new Date().toISOString().slice(0, 10) },
+  { id: 'guest-tx-6', title: 'Dining & Entertainment', text: 'Dining & Entertainment', amount: -1450, type: 'expense', category: 'Entertainment', date: new Date().toISOString().slice(0, 10) }
+];
+
 // Helper to normalize transaction object from backend to UI expectations
 const formatTransaction = (tx) => {
   const rawDate = tx.date || tx.created_at || new Date().toISOString();
@@ -17,7 +27,7 @@ const formatTransaction = (tx) => {
   };
 };
 
-// Helper to normalize user profile object from backend
+// Helper to normalize user profile object
 const formatUserProfile = (data) => {
   if (!data) return {
     id: null,
@@ -25,17 +35,18 @@ const formatUserProfile = (data) => {
     firstName: 'Guest',
     lastName: 'User',
     email: '',
-    avatar: 'https://ui-avatars.com/api/?name=Guest&background=EAB308&color=000&size=150',
-    avatar_url: 'https://ui-avatars.com/api/?name=Guest&background=EAB308&color=000&size=150',
+    avatar: 'https://ui-avatars.com/api/?name=Guest+User&background=FACC15&color=000&size=150',
+    avatar_url: 'https://ui-avatars.com/api/?name=Guest+User&background=FACC15&color=000&size=150',
     loanAmount: 0,
-    base_loan: 0
+    base_loan: 0,
+    isGuest: false
   };
 
   const name = data.name || 'User';
   const nameParts = name.trim().split(' ');
   const firstName = data.firstName || nameParts[0] || 'User';
   const lastName = data.lastName || nameParts.slice(1).join(' ') || '';
-  const avatar_url = data.avatar_url || data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EAB308&color=000&size=150`;
+  const avatar_url = data.avatar_url || data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FACC15&color=000&size=150`;
   const base_loan = Number(data.base_loan ?? data.loanAmount ?? 0);
 
   return {
@@ -47,7 +58,8 @@ const formatUserProfile = (data) => {
     avatar: avatar_url,
     avatar_url,
     loanAmount: base_loan,
-    base_loan
+    base_loan,
+    isGuest: Boolean(data.isGuest)
   };
 };
 
@@ -115,6 +127,7 @@ const AppReducer = (state, action) => {
 export const GlobalProvider = ({ children }) => {
   const [state, dispatch] = useReducer(AppReducer, initialState);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('token') || localStorage.getItem('authToken') || '');
+  const [isGuest, setIsGuest] = useState(() => localStorage.getItem('isGuest') === 'true');
 
   // Helper to fetch user data using a given token or current authToken
   const fetchUserData = useCallback(async (token) => {
@@ -159,7 +172,8 @@ export const GlobalProvider = ({ children }) => {
         const profileData = await profileRes.json();
         const formattedProfile = formatUserProfile({
           ...profileData,
-          base_loan: Number(profileData.base_loan) || 0
+          base_loan: Number(profileData.base_loan) || 0,
+          isGuest: false
         });
         dispatch({ type: 'SET_USER_PROFILE', payload: formattedProfile });
       } else {
@@ -170,13 +184,62 @@ export const GlobalProvider = ({ children }) => {
     }
   }, [authToken]);
 
+  // Guest login action
+  const loginAsGuest = useCallback(() => {
+    localStorage.setItem('isGuest', 'true');
+    setIsGuest(true);
+
+    let savedTransactions = [];
+    try {
+      const stored = localStorage.getItem('guest_transactions');
+      savedTransactions = stored ? JSON.parse(stored) : DEFAULT_GUEST_TRANSACTIONS;
+    } catch {
+      savedTransactions = DEFAULT_GUEST_TRANSACTIONS;
+    }
+    localStorage.setItem('guest_transactions', JSON.stringify(savedTransactions));
+    dispatch({ type: 'SET_TRANSACTIONS', payload: savedTransactions.map(formatTransaction) });
+
+    const currentMonthKey = getCurrentMonthKey();
+    let savedBudgets = { [currentMonthKey]: 35000 };
+    try {
+      const storedBudgets = localStorage.getItem('guest_budgets');
+      if (storedBudgets) savedBudgets = JSON.parse(storedBudgets);
+    } catch {
+      // fallback
+    }
+    dispatch({ type: 'SET_BUDGETS', payload: savedBudgets });
+
+    let savedProfile = {
+      id: 'guest',
+      name: 'Guest User',
+      firstName: 'Guest',
+      lastName: 'User',
+      email: 'guest@expenseflow.demo',
+      avatar: 'https://ui-avatars.com/api/?name=Guest+User&background=FACC15&color=000&size=150',
+      avatar_url: 'https://ui-avatars.com/api/?name=Guest+User&background=FACC15&color=000&size=150',
+      loanAmount: 25000,
+      base_loan: 25000,
+      isGuest: true
+    };
+    try {
+      const storedProfile = localStorage.getItem('guest_profile');
+      if (storedProfile) savedProfile = { ...savedProfile, ...JSON.parse(storedProfile) };
+    } catch {
+      // fallback
+    }
+    dispatch({ type: 'SET_USER_PROFILE', payload: formatUserProfile(savedProfile) });
+    return { success: true };
+  }, []);
+
   useEffect(() => {
     if (authToken) {
       fetchUserData(authToken);
+    } else if (isGuest) {
+      loginAsGuest();
     } else {
       dispatch({ type: 'LOGOUT' });
     }
-  }, [authToken, fetchUserData]);
+  }, [authToken, isGuest, fetchUserData, loginAsGuest]);
 
   // Auth Actions
   async function loginUser(credentials) {
@@ -195,12 +258,14 @@ export const GlobalProvider = ({ children }) => {
         return { success: false, error: data.error || 'Failed to log in' };
       }
 
+      localStorage.removeItem('isGuest');
+      setIsGuest(false);
       localStorage.setItem('token', data.token);
       localStorage.setItem('authToken', data.token);
       setAuthToken(data.token);
 
       if (data.user) {
-        dispatch({ type: 'SET_USER_PROFILE', payload: formatUserProfile(data.user) });
+        dispatch({ type: 'SET_USER_PROFILE', payload: formatUserProfile({ ...data.user, isGuest: false }) });
       }
 
       fetchUserData(data.token);
@@ -238,12 +303,21 @@ export const GlobalProvider = ({ children }) => {
   function logoutUser() {
     localStorage.removeItem('token');
     localStorage.removeItem('authToken');
+    localStorage.removeItem('isGuest');
+    setIsGuest(false);
     setAuthToken('');
     dispatch({ type: 'LOGOUT' });
   }
 
-  // Data Actions with Authorization header
+  // Data Actions with Guest Support & Authorization header
   async function deleteTransaction(id) {
+    if (isGuest) {
+      dispatch({ type: 'DELETE_TRANSACTION', payload: id });
+      const updated = state.transactions.filter(t => t.id !== id);
+      localStorage.setItem('guest_transactions', JSON.stringify(updated));
+      return;
+    }
+
     if (!authToken) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/transactions/${id}`, {
@@ -264,6 +338,21 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function addTransaction(transaction) {
+    if (isGuest) {
+      const newTx = formatTransaction({
+        id: 'guest-tx-' + Date.now(),
+        title: transaction.title || transaction.text || 'Expense',
+        amount: Number(transaction.amount),
+        type: transaction.type,
+        category: transaction.category,
+        date: transaction.date || new Date().toISOString()
+      });
+      dispatch({ type: 'ADD_TRANSACTION', payload: newTx });
+      const updated = [newTx, ...state.transactions];
+      localStorage.setItem('guest_transactions', JSON.stringify(updated));
+      return;
+    }
+
     if (!authToken) return;
     try {
       const payload = {
@@ -296,10 +385,24 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function setBudget(newAmount) {
-    if (!authToken) return;
-    const month_year = new Date().toISOString().slice(0, 7);
+    const month_year = getCurrentMonthKey();
     const rawVal = typeof newAmount === 'object' && newAmount !== null ? (newAmount.target_amount ?? newAmount.amount) : newAmount;
     const target_amount = Number(rawVal);
+
+    if (isGuest) {
+      dispatch({
+        type: 'SET_BUDGET',
+        payload: {
+          month_year,
+          target_amount
+        }
+      });
+      const updatedBudgets = { ...state.budgets, [month_year]: target_amount };
+      localStorage.setItem('guest_budgets', JSON.stringify(updatedBudgets));
+      return;
+    }
+
+    if (!authToken) return;
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/budgets`, {
@@ -332,6 +435,17 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function updateUserProfile(profileData) {
+    if (isGuest) {
+      const updatedProfile = formatUserProfile({
+        ...state.userProfile,
+        ...profileData,
+        isGuest: true
+      });
+      dispatch({ type: 'SET_USER_PROFILE', payload: updatedProfile });
+      localStorage.setItem('guest_profile', JSON.stringify(updatedProfile));
+      return;
+    }
+
     if (!authToken) return;
     try {
       const name = profileData.name || `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || 'User';
@@ -343,8 +457,6 @@ export const GlobalProvider = ({ children }) => {
         avatar_url,
         base_loan
       };
-
-      console.log('Sending Profile:', payload);
 
       const res = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'PUT',
@@ -362,7 +474,8 @@ export const GlobalProvider = ({ children }) => {
           firstName: profileData.firstName,
           lastName: profileData.lastName,
           email: profileData.email || updatedRow.email,
-          base_loan: Number(updatedRow.base_loan)
+          base_loan: Number(updatedRow.base_loan),
+          isGuest: false
         });
         dispatch({ type: 'SET_USER_PROFILE', payload: formatted });
       } else {
@@ -374,6 +487,16 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function deleteAccount() {
+    if (isGuest) {
+      localStorage.removeItem('isGuest');
+      localStorage.removeItem('guest_transactions');
+      localStorage.removeItem('guest_budgets');
+      localStorage.removeItem('guest_profile');
+      setIsGuest(false);
+      dispatch({ type: 'LOGOUT' });
+      return true;
+    }
+
     if (!authToken) return false;
     try {
       const res = await fetch(`${API_BASE_URL}/api/profile`, {
@@ -398,6 +521,10 @@ export const GlobalProvider = ({ children }) => {
   }
 
   async function updatePassword(currentPassword, newPassword) {
+    if (isGuest) {
+      return { success: false, error: 'Password changes are disabled in Guest mode. Please create an account.' };
+    }
+
     if (!authToken) return { success: false, error: 'Not authenticated' };
     try {
       const res = await fetch(`${API_BASE_URL}/api/auth/update-password`, {
@@ -431,6 +558,8 @@ export const GlobalProvider = ({ children }) => {
   return (
     <GlobalContext.Provider value={{
       authToken,
+      isGuest,
+      loginAsGuest,
       transactions: state.transactions,
       budgets: state.budgets,
       budget: getBudgetForMonth(),

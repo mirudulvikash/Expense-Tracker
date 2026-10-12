@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, UserCheck, Sparkles } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GlobalContext } from '../context/GlobalState';
 
 export const Login = () => {
-  const { loginUser } = useContext(GlobalContext);
+  const { loginUser, loginAsGuest } = useContext(GlobalContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -36,6 +36,11 @@ export const Login = () => {
         }
       }
     }
+  };
+
+  const handleGuestLogin = () => {
+    loginAsGuest();
+    navigate('/');
   };
 
   return (
@@ -99,12 +104,43 @@ export const Login = () => {
           <Button 
             type="submit" 
             disabled={!isFormValid || loading}
-            className="w-full h-12 mt-4 bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 disabled:hover:bg-[#FACC15] text-black font-bold text-lg rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] hover:shadow-[0_6px_20px_0_rgba(250,204,21,0.3)] transition-all"
+            className="w-full h-12 mt-4 bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 disabled:hover:bg-[#FACC15] text-black font-bold text-lg rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] hover:shadow-[0_6px_20px_0_rgba(250,204,21,0.3)] transition-all cursor-pointer"
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </Button>
 
-          <p className="text-center text-sm text-[#A3A3A3] mt-6">
+          {/* Divider */}
+          <div className="relative my-6 text-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#262626]"></div>
+            </div>
+            <span className="relative bg-[#1a1a1a] px-3 text-xs uppercase tracking-wider text-[#737373] font-medium">
+              Or explore first
+            </span>
+          </div>
+
+          {/* Guest User Instant Button */}
+          <Button
+            type="button"
+            onClick={handleGuestLogin}
+            className="w-full h-12 bg-[#262626] hover:bg-[#333333] border border-[#383838] hover:border-[#FACC15]/60 text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+          >
+            <UserCheck size={18} className="text-[#FACC15]" />
+            <span>Continue as Guest User</span>
+          </Button>
+
+          {/* Dedicated Guest User Page Link */}
+          <div className="text-center pt-1">
+            <Link 
+              to="/guest" 
+              className="inline-flex items-center gap-1.5 text-xs text-[#FACC15] hover:text-yellow-300 font-medium transition-colors hover:underline"
+            >
+              <Sparkles size={13} />
+              <span>Preview Guest User Experience Page →</span>
+            </Link>
+          </div>
+
+          <p className="text-center text-sm text-[#A3A3A3] mt-6 pt-2 border-t border-[#262626]">
             Don't have an account? <Link to="/signup" className="text-white hover:text-[#FACC15] font-medium transition-colors">Sign up</Link>
           </p>
         </form>

@@ -3,11 +3,11 @@ import { GlobalContext } from '../context/GlobalState';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label } from '../components/ui/Input';
-import { User, Mail, Shield, Bell, Smartphone, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { User, Mail, Shield, Bell, Smartphone, Trash2, Sparkles, UserPlus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 export const Profile = () => {
-  const { budget, setBudget, userProfile, updateUserProfile, deleteAccount, updatePassword } = useContext(GlobalContext);
+  const { budget, setBudget, userProfile, updateUserProfile, deleteAccount, updatePassword, isGuest } = useContext(GlobalContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -16,9 +16,9 @@ export const Profile = () => {
   const [activeTab, setActiveTab] = useState('personal'); // 'personal', 'security', 'notifications'
 
   const [localProfile, setLocalProfile] = useState({
-    firstName: storedUser.firstName || userProfile?.firstName || '',
-    lastName: storedUser.lastName || userProfile?.lastName || '',
-    email: storedUser.email || userProfile?.email || '',
+    firstName: storedUser.firstName || userProfile?.firstName || 'Guest',
+    lastName: storedUser.lastName || userProfile?.lastName || 'User',
+    email: storedUser.email || userProfile?.email || 'guest@expenseflow.demo',
     avatar: userProfile?.avatar || userProfile?.avatar_url || '',
     loanAmount: Number(userProfile?.base_loan ?? userProfile?.loanAmount) || 0,
     base_loan: Number(userProfile?.base_loan ?? userProfile?.loanAmount) || 0
@@ -61,11 +61,16 @@ export const Profile = () => {
       lastName: localProfile.lastName, 
       email: localProfile.email 
     }));
-    alert("Profile settings saved successfully!");
+    alert(isGuest ? "Guest preferences saved in local session!" : "Profile settings saved successfully!");
   };
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
+    if (isGuest) {
+      alert("Password changes are disabled in Guest mode. Please create an account to secure your credentials.");
+      return;
+    }
+
     setPassError('');
 
     if (newPass !== confirmPass) {
@@ -91,13 +96,17 @@ export const Profile = () => {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm("Are you sure you want to permanently delete your account and all data? This cannot be undone.");
+    const confirmText = isGuest
+      ? "Are you sure you want to clear your guest session and local sandbox data?"
+      : "Are you sure you want to permanently delete your account and all data? This cannot be undone.";
+
+    const confirmed = window.confirm(confirmText);
     if (confirmed) {
       const success = await deleteAccount();
       if (success) {
         navigate('/signup');
       } else {
-        alert("Failed to delete account. Please try again.");
+        alert(isGuest ? "Failed to clear guest session." : "Failed to delete account. Please try again.");
       }
     }
   };
@@ -130,9 +139,41 @@ export const Profile = () => {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6 animate-in fade-in duration-500 pb-12">
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center justify-between gap-4 mb-2">
         <h1 className="text-3xl font-bold text-white tracking-tight">Account Profile</h1>
+        {isGuest && (
+          <Link
+            to="/signup"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#FACC15] hover:bg-[#EAB308] text-black font-bold text-xs rounded-xl transition-all shadow-sm"
+          >
+            <UserPlus size={14} />
+            Upgrade to Permanent Account
+          </Link>
+        )}
       </div>
+
+      {/* Guest Mode Informational Banner */}
+      {isGuest && (
+        <div className="p-4 rounded-2xl bg-[#FACC15]/10 border border-[#FACC15]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#FACC15] text-black flex items-center justify-center font-bold shrink-0">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <h4 className="text-white font-semibold text-sm">Guest Sandbox Active</h4>
+              <p className="text-xs text-[#A3A3A3]">
+                You are currently exploring in Guest User mode. Changes and transactions are saved locally in your browser.
+              </p>
+            </div>
+          </div>
+          <Link 
+            to="/signup"
+            className="px-4 py-2 bg-[#1f1f1f] hover:bg-[#2a2a2a] border border-[#FACC15]/40 text-[#FACC15] text-xs font-semibold rounded-xl transition-all shrink-0"
+          >
+            Register Account
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
@@ -205,9 +246,18 @@ export const Profile = () => {
                   <Label htmlFor="email" className="text-[#E5E5E5]">Email Address</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#A3A3A3]" />
-                    <Input type="email" id="email" value={localProfile.email} onChange={handleChange} className="bg-black border-[#262626] h-11 rounded-lg pl-10 focus:ring-[#FACC15]" />
+                    <Input 
+                      type="email" 
+                      id="email" 
+                      value={localProfile.email} 
+                      onChange={handleChange} 
+                      readOnly={isGuest}
+                      className={`bg-black border-[#262626] h-11 rounded-lg pl-10 focus:ring-[#FACC15] ${isGuest ? 'opacity-80' : ''}`} 
+                    />
                   </div>
-                  <p className="text-xs text-[#A3A3A3] mt-1">Update your active session email address.</p>
+                  <p className="text-xs text-[#A3A3A3] mt-1">
+                    {isGuest ? 'Guest sessions use an ephemeral local demo identity.' : 'Update your active session email address.'}
+                  </p>
                 </div>
                 
                 <h3 className="text-xl font-semibold mb-2 mt-8 text-white border-b border-[#262626] pb-4">App Preferences</h3>
@@ -225,7 +275,7 @@ export const Profile = () => {
                       onChange={(e) => setBudget(Number(e.target.value))}
                       className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
                     />
-                    <p className="text-xs text-[#A3A3A3] mt-1">Changing this only affects your goal for the current month.</p>
+                    <p className="text-xs text-[#A3A3A3] mt-1">Changing this affects your goal for the current month.</p>
                   </div>
   
                   <div className="space-y-2">
@@ -240,31 +290,35 @@ export const Profile = () => {
                       onChange={handleChange}
                       className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
                     />
-                    <p className="text-xs text-[#A3A3A3] mt-1">Tracks your current active loan.</p>
+                    <p className="text-xs text-[#A3A3A3] mt-1">Tracks your current active loan balance.</p>
                   </div>
                 </div>
 
                 <div className="pt-4 flex justify-end">
-                  <Button type="submit" className="bg-[#FACC15] hover:bg-[#EAB308] text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)]">
+                  <Button type="submit" className="bg-[#FACC15] hover:bg-[#EAB308] text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] cursor-pointer">
                     Save Changes
                   </Button>
                 </div>
               </form>
 
-              {/* Danger Zone: Delete Account (Exclusive to Personal Information view) */}
+              {/* Danger Zone: Delete Account / Reset Guest Session */}
               <div className="mt-10 pt-6 border-t border-red-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                   <h4 className="text-red-500 font-semibold text-base flex items-center gap-2">
-                    <Trash2 size={16} /> Danger Zone
+                    <Trash2 size={16} /> {isGuest ? 'Reset Guest Sandbox' : 'Danger Zone'}
                   </h4>
-                  <p className="text-xs text-[#A3A3A3]">Permanently remove your account, transactions, and budget data.</p>
+                  <p className="text-xs text-[#A3A3A3]">
+                    {isGuest 
+                      ? 'Clear your local demo transactions and reset your guest session data.'
+                      : 'Permanently remove your account, transactions, and budget data.'}
+                  </p>
                 </div>
                 <Button 
                   type="button" 
                   onClick={handleDeleteAccount} 
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all"
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold h-11 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(220,38,38,0.3)] transition-all cursor-pointer"
                 >
-                  Delete Account
+                  {isGuest ? 'Clear Guest Data' : 'Delete Account'}
                 </Button>
               </div>
             </>
@@ -274,75 +328,98 @@ export const Profile = () => {
             <>
               <h3 className="text-xl font-semibold mb-6 text-white border-b border-[#262626] pb-4">Security Settings</h3>
               
-              <form onSubmit={handleUpdatePassword} className="space-y-6" autoComplete="off">
-                <div className="space-y-2">
-                  <Label htmlFor="currPass" className="text-[#E5E5E5]">Current Password</Label>
-                  <Input 
-                    id="currPass" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={currPass}
-                    onChange={(e) => setCurrPass(e.target.value)}
-                    autoComplete="current-password"
-                    className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
-                    required
-                  />
+              {isGuest ? (
+                <div className="p-8 rounded-2xl bg-black border border-[#262626] text-center my-4 space-y-4">
+                  <div className="w-14 h-14 rounded-full bg-[#FACC15]/10 border border-[#FACC15]/30 flex items-center justify-center text-[#FACC15] mx-auto">
+                    <Shield size={28} />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold text-lg">Security Settings Unavailable</h4>
+                    <p className="text-sm text-[#A3A3A3] max-w-md mx-auto mt-2 leading-relaxed">
+                      You are currently exploring in Guest Mode without registered credentials. Create a full account to manage passwords, two-factor authentication, and security preferences.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <Link
+                      to="/signup"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-[#FACC15] hover:bg-[#EAB308] text-black font-bold text-sm rounded-xl transition-all shadow-[0_4px_14px_0_rgba(250,204,21,0.2)]"
+                    >
+                      <UserPlus size={16} />
+                      Create Permanent Account
+                    </Link>
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              ) : (
+                <form onSubmit={handleUpdatePassword} className="space-y-6" autoComplete="off">
                   <div className="space-y-2">
-                    <Label htmlFor="newPass" className="text-[#E5E5E5]">New Password</Label>
+                    <Label htmlFor="currPass" className="text-[#E5E5E5]">Current Password</Label>
                     <Input 
-                      id="newPass" 
+                      id="currPass" 
                       type="password" 
                       placeholder="••••••••" 
-                      value={newPass}
-                      onChange={(e) => setNewPass(e.target.value)}
-                      autoComplete="new-password"
+                      value={currPass}
+                      onChange={(e) => setCurrPass(e.target.value)}
+                      autoComplete="current-password"
                       className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPass" className="text-[#E5E5E5]">Confirm Password</Label>
-                    <Input 
-                      id="confirmPass" 
-                      type="password" 
-                      placeholder="••••••••" 
-                      value={confirmPass}
-                      onChange={(e) => setConfirmPass(e.target.value)}
-                      autoComplete="new-password"
-                      className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
-                      required
-                    />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="newPass" className="text-[#E5E5E5]">New Password</Label>
+                      <Input 
+                        id="newPass" 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={newPass}
+                        onChange={(e) => setNewPass(e.target.value)}
+                        autoComplete="new-password"
+                        className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPass" className="text-[#E5E5E5]">Confirm Password</Label>
+                      <Input 
+                        id="confirmPass" 
+                        type="password" 
+                        placeholder="••••••••" 
+                        value={confirmPass}
+                        onChange={(e) => setConfirmPass(e.target.value)}
+                        autoComplete="new-password"
+                        className="bg-black border-[#262626] h-11 rounded-lg focus:ring-[#FACC15]" 
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {passError && <p className="text-red-500 text-sm font-medium">{passError}</p>}
+                  {passError && <p className="text-red-500 text-sm font-medium">{passError}</p>}
 
-                <div className="flex items-center gap-4 p-4 mt-6 rounded-xl bg-black border border-[#262626]">
-                   <div className="w-10 h-10 rounded-full bg-[#262626] flex items-center justify-center text-[#FACC15]">
-                     <Smartphone size={20} />
-                   </div>
-                   <div className="flex-1">
-                     <h4 className="text-white font-medium">Two-Factor Authentication</h4>
-                     <p className="text-xs text-[#A3A3A3]">Add an extra layer of security to your account</p>
-                   </div>
-                   <Button type="button" variant="outline" className="border-[#262626] text-[#A3A3A3] hover:text-white rounded-lg">
-                      Enable
-                   </Button>
-                </div>
+                  <div className="flex items-center gap-4 p-4 mt-6 rounded-xl bg-black border border-[#262626]">
+                     <div className="w-10 h-10 rounded-full bg-[#262626] flex items-center justify-center text-[#FACC15]">
+                       <Smartphone size={20} />
+                     </div>
+                     <div className="flex-1">
+                       <h4 className="text-white font-medium">Two-Factor Authentication</h4>
+                       <p className="text-xs text-[#A3A3A3]">Add an extra layer of security to your account</p>
+                     </div>
+                     <Button type="button" variant="outline" className="border-[#262626] text-[#A3A3A3] hover:text-white rounded-lg">
+                        Enable
+                     </Button>
+                  </div>
 
-                <div className="pt-4 flex justify-end">
-                  <Button 
-                    type="submit" 
-                    disabled={passLoading}
-                    className="bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)]"
-                  >
-                    {passLoading ? 'Updating...' : 'Update Password'}
-                  </Button>
-                </div>
-              </form>
+                  <div className="pt-4 flex justify-end">
+                    <Button 
+                      type="submit" 
+                      disabled={passLoading}
+                      className="bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-50 text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] cursor-pointer"
+                    >
+                      {passLoading ? 'Updating...' : 'Update Password'}
+                    </Button>
+                  </div>
+                </form>
+              )}
             </>
           )}
 
@@ -378,7 +455,7 @@ export const Profile = () => {
                 </div>
 
                 <div className="pt-4 flex justify-end">
-                  <Button type="submit" className="bg-[#FACC15] hover:bg-[#EAB308] text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)]">
+                  <Button type="submit" className="bg-[#FACC15] hover:bg-[#EAB308] text-black font-semibold h-11 px-8 rounded-xl shadow-[0_4px_14px_0_rgba(250,204,21,0.2)] cursor-pointer">
                     Save Preferences
                   </Button>
                 </div>
